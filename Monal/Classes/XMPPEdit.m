@@ -11,7 +11,6 @@
 #import "MBProgressHUD.h"
 #import "MLButtonCell.h"
 #import "MLImageManager.h"
-#import "MLPasswordChangeTableViewController.h"
 #import "MLSwitchCell.h"
 #import "MLOMEMO.h"
 #import "MLNotificationQueue.h"
@@ -828,9 +827,11 @@ enum DummySettingsRows {
     {
         switch(newIndexPath.row)
         {
-            case SettingsChangePasswordRow:
-                [self performSegueWithIdentifier:@"showPassChange" sender:self];
+            case SettingsChangePasswordRow: {
+                UIViewController* changePasswordView = [[SwiftuiInterface new] makeChangePasswordViewFor:self.accountID];
+                [self showDetailViewController:changePasswordView sender:self];
                 break;
+            }
             case SettingsOmemoKeysRow: {
                 UIViewController* ownOmemoKeysView;
                 xmpp* xmppAccount = [[MLXMPPManager sharedInstance] getEnabledAccountForID:self.accountID];
@@ -892,20 +893,6 @@ enum DummySettingsRows {
     }
 }
 
-
-#pragma mark - segeue
-
--(void) prepareForSegue:(UIStoryboardSegue*) segue sender:(id) sender
-{
-    if([segue.identifier isEqualToString:@"showPassChange"])
-    {
-        if(self.jid && self.accountID)
-        {
-            MLPasswordChangeTableViewController* pwchange = (MLPasswordChangeTableViewController*)segue.destinationViewController;
-            pwchange.xmppAccount = [[MLXMPPManager sharedInstance] getEnabledAccountForID:self.accountID];
-        }
-    }
-}
 
 #pragma mark -  text input  fielddelegate
 
