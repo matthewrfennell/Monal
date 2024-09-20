@@ -50,7 +50,7 @@ struct ImageViewer: View {
     var delegate: SheetDismisserProtocol
     let info: [String:AnyObject]
     @State private var previewImage: UIImage?
-    @State private var controlsVisible = false
+    @State private var shouldShowToolbar = true
     @StateObject private var customPlayer = CustomAVPlayer()
     @State private var isPlayerReady = false
 
@@ -98,17 +98,17 @@ struct ImageViewer: View {
             } else {
                 InvalidFileView()
             }
-            
-            if controlsVisible {
-                ControlsOverlay(info: info, previewImage: $previewImage, dismiss: {
-                                   self.delegate.dismiss()
-                               })
-            }
-        }.onTapGesture(count: 1) {
-            controlsVisible.toggle()
-        }.task {
+        }
+        .toolbar(shouldShowToolbar ? .visible : .hidden)
+        .onTapGesture(count: 1) {
+            shouldShowToolbar.toggle()
+        }
+        .task {
             await loadPreviewAndConfigurePlayer()
         }
+        .animation(.default, value: shouldShowToolbar)
+        .navigationTitle(Text(info["filename"] as! String))
+        .toolbarTitleDisplayMode(.inline)
     }
     
     private func loadPreviewAndConfigurePlayer() async {

@@ -599,6 +599,46 @@ struct AddTopLevelNavigation<Content: View>: View {
     }
 }
 
+// use this to wrap a view into NavigationStack, if it should be the outermost swiftui view of a new view stack
+struct AddMediaViewerNavigation: View {
+    let info: [String:AnyObject]
+    let delegate: SheetDismisserProtocol
+    @StateObject private var sizeClass: ObservableKVOWrapper<SizeClassWrapper>
+
+    init(withDelegate delegate: SheetDismisserProtocol, info: [String:AnyObject]) {
+        self.delegate = delegate
+        self.info = info
+
+        let activeChats = (UIApplication.shared.delegate as! MonalAppDelegate).activeChats!
+        self._sizeClass = StateObject(wrappedValue: ObservableKVOWrapper<SizeClassWrapper>(activeChats.sizeClass))
+    }
+
+    var body: some View {
+        NavigationStack {
+            AnyView(try! ImageViewer(delegate:delegate, info:info))
+                .navigationBarTitleDisplayMode(.automatic)
+                .navigationBarBackButtonHidden(true) // will not be shown because swiftui does not know we navigated here from UIKit
+                .toolbar {
+#if targetEnvironment(macCatalyst)
+                    let shouldDisplayBackButton = true
+#else
+                    let shouldDisplayBackButton = UIUserInterfaceSizeClass(rawValue: sizeClass.horizontal) == .compact
+#endif
+                    if shouldDisplayBackButton {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button(action : {
+                                self.delegate.dismiss()
+                            }) {
+                                Image(systemName: "arrow.backward")
+                            }
+                            .keyboardShortcut(.escape, modifiers: [])
+                        }
+                    }
+                }
+        }
+    }
+}
+
 // TODO: fix those workarounds as soon as we have no storyboards anymore
 struct UIKitWorkaround<Content: View>: View {
     let build: () -> Content
@@ -722,7 +762,7 @@ class SwiftuiInterface : NSObject {
         let delegate = SheetDismisserProtocol()
         let host = UIHostingController(rootView:AnyView(EmptyView()))
         delegate.host = host
-        host.rootView = AnyView(try! ImageViewer(delegate:delegate, info:info))
+        host.rootView = AnyView(AddMediaViewerNavigation(withDelegate:delegate, info:info))
         return host
     }
     
