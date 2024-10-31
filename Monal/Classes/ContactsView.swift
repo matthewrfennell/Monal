@@ -48,21 +48,16 @@ struct ContactViewEntry: View {
         HStack(spacing: 0) {
             Text("").frame(maxWidth: 0)
             Button(action: { dismissWithContact(contact) }) {
-                // The only purpose of this NavigationLink is making the button it contains look nice.
-                // In other words: have a screen-wide touch target and the chveron on the right of the screen.
-                // This avoids having to do manual button styling that might have to be recreated in the future.
-                NavigationLink(destination: EmptyView()) {
-                    HStack {
-                        ContactEntry(contact: ObservableKVOWrapper<MLContact>(contact))
-                        Spacer()
-                        Button {
-                            selectedContactForContactDetails = ObservableKVOWrapper<MLContact>(contact)
-                        } label: {
-                            Image(systemName: "info.circle")
-                                .imageScale(.large)
-                        }
-                        .accessibilityLabel("Open contact details")
+                HStack {
+                    ContactEntry(contact: ObservableKVOWrapper<MLContact>(contact))
+                    Spacer()
+                    Button {
+                        selectedContactForContactDetails = ObservableKVOWrapper<MLContact>(contact)
+                    } label: {
+                        Image(systemName: "info.circle")
+                            .imageScale(.large)
                     }
+                    .accessibilityLabel("Open contact details")
                 }
             }
         }
