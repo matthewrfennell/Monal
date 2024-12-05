@@ -77,6 +77,8 @@
 		26E8462824EABAED00ECE419 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 26E8462A24EABAED00ECE419 /* Main.storyboard */; };
 		26F9794D1ACAC73A0008E005 /* MLContactCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 26F9794C1ACAC73A0008E005 /* MLContactCell.xib */; };
 		26FE3BCB1C61A6C3003CC230 /* MLResizingTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = 26FE3BCA1C61A6C3003CC230 /* MLResizingTextView.m */; };
+		341F44662CAF427500AA6C7D /* MLPromiseRegistry.h in Headers */ = {isa = PBXBuildFile; fileRef = 341F44642CAF427500AA6C7D /* MLPromiseRegistry.h */; };
+		341F44672CAF427500AA6C7D /* MLPromiseRegistry.m in Sources */ = {isa = PBXBuildFile; fileRef = 341F44652CAF427500AA6C7D /* MLPromiseRegistry.m */; };
 		34BC08122C5E9BE30099FB85 /* ContentUnavailableShimView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34BC08112C5E9BE30099FB85 /* ContentUnavailableShimView.swift */; };
 		34E58B4B2C68E7BC009A1634 /* ContactsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34E58B4A2C68E7BC009A1634 /* ContactsView.swift */; };
 		38720923251EDE07001837EB /* MLXEPSlashMeHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 38720921251EDE07001837EB /* MLXEPSlashMeHandler.m */; };
@@ -496,6 +498,8 @@
 		2C59BAF969550DFAC27E5F2B /* Pods_MonalXMPPUnitTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MonalXMPPUnitTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		2E5021A8D40FCC591D952104 /* Pods-NotificaionService.alpha-ios.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificaionService.alpha-ios.xcconfig"; path = "Target Support Files/Pods-NotificaionService/Pods-NotificaionService.alpha-ios.xcconfig"; sourceTree = "<group>"; };
 		32CA4F630368D1EE00C91783 /* MonalSourceCodePrefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MonalSourceCodePrefix.pch; sourceTree = "<group>"; };
+		341F44642CAF427500AA6C7D /* MLPromiseRegistry.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MLPromiseRegistry.h; sourceTree = "<group>"; };
+		341F44652CAF427500AA6C7D /* MLPromiseRegistry.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MLPromiseRegistry.m; sourceTree = "<group>"; };
 		34BC08112C5E9BE30099FB85 /* ContentUnavailableShimView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentUnavailableShimView.swift; sourceTree = "<group>"; };
 		34E58B4A2C68E7BC009A1634 /* ContactsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactsView.swift; sourceTree = "<group>"; };
 		3872091F251EDE07001837EB /* MLXEPSlashMeHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLXEPSlashMeHandler.h; sourceTree = "<group>"; };
@@ -858,6 +862,8 @@
 				262D9EAB17924532009292B4 /* MLConstants.h */,
 				26EC411117BDE39E0031304D /* MLImageManager.h */,
 				26EC411217BDE39E0031304D /* MLImageManager.m */,
+				341F44642CAF427500AA6C7D /* MLPromiseRegistry.h */,
+				341F44652CAF427500AA6C7D /* MLPromiseRegistry.m */,
 				263AFDFA209B3B35007F9CEE /* MLSignalStore.h */,
 				263AFDFB209B3B35007F9CEE /* MLSignalStore.m */,
 				C16D18332792A4AF00F869A0 /* DataLayerMigrations.h */,
@@ -1505,6 +1511,7 @@
 				26D4389123A5EB6C00242AAA /* MLConstants.h in Headers */,
 				C158D40025A0AB810005AA40 /* MLMucProcessor.h in Headers */,
 				54A22D2D26185E7E00B56EAD /* MLNotificationQueue.h in Headers */,
+				341F44662CAF427500AA6C7D /* MLPromiseRegistry.h in Headers */,
 				541E4CC4254D369200FD7B28 /* MLPubSubProcessor.h in Headers */,
 				844921EC2C29F9BE00B99A9C /* MLDelayableTimer.h in Headers */,
 				84C1CD542A8F6196007076ED /* MLStreamRedirect.h in Headers */,
@@ -2161,6 +2168,7 @@
 			files = (
 				5427C94E276A6BE1003217D5 /* UIColor+Extension.m in Sources */,
 				540E13A524CF6A8C0038FDA0 /* MLNotificationManager.m in Sources */,
+				341F44672CAF427500AA6C7D /* MLPromiseRegistry.m in Sources */,
 				54D2308424CB10EE00638D65 /* MLLogFileManager.m in Sources */,
 				26CC57B323A086CC00ABB92A /* XMPPIQ.m in Sources */,
 				C1613B5B2520723D0062C0C2 /* MLBasePaser.m in Sources */,

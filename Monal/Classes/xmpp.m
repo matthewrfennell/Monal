@@ -241,6 +241,7 @@ NSString* const kStanza = @"stanza";
     
     //init muc processor
     self.mucProcessor = [[MLMucProcessor alloc] initWithAccount:self];
+    self.promiseRegistry = [MLPromiseRegistry new];
     
     _stateLockObject = [NSObject new];
     [self initSM3];
@@ -3550,6 +3551,7 @@ NSString* const kStanza = @"stanza";
             [values setObject:[NSNumber numberWithBool:self.connectionProperties.accountDiscoDone] forKey:@"accountDiscoDone"];
             [values setObject:[self->_inCatchup copy] forKey:@"inCatchup"];
             [values setObject:[self->_mdsData copy] forKey:@"mdsData"];
+            [values setObject:self.promiseRegistry forKey:@"promiseRegistry"];
             
             if(self->_cachedStreamFeaturesBeforeAuth != nil)
                 [values setObject:self->_cachedStreamFeaturesBeforeAuth forKey:@"cachedStreamFeaturesBeforeAuth"];
@@ -3782,7 +3784,14 @@ NSString* const kStanza = @"stanza";
                 NSNumber* hasSeenOmemoDeviceListAfterOwnDeviceid = [dic objectForKey:@"hasSeenOmemoDeviceListAfterOwnDeviceid"];
                 self.hasSeenOmemoDeviceListAfterOwnDeviceid = hasSeenOmemoDeviceListAfterOwnDeviceid.boolValue;
             }
-            
+
+            if([dic objectForKey:@"promiseRegistry"])
+            {
+                MLPromiseRegistry* serializedPromiseRegistry = [dic objectForKey:@"promiseRegistry"];
+                [self.promiseRegistry sync:serializedPromiseRegistry];
+                [self.promiseRegistry attemptConsumeRemainingPromises];
+            }
+
             //debug output
             DDLogVerbose(@"%@ --> readState(saved at %@):\n\tisDoingFullReconnect=%@,\n\tlastHandledInboundStanza=%@,\n\tlastHandledOutboundStanza=%@,\n\tlastOutboundStanza=%@,\n\t#unAckedStanzas=%lu%s,\n\tstreamID=%@,\n\tlastInteractionDate=%@\n\tpersistentIqHandlers=%@\n\tsupportsHttpUpload=%d\n\tpushEnabled=%d\n\tsupportsPubSub=%d\n\tsupportsModernPubSub=%d\n\tsupportsPubSubMax=%d\n\tsupportsBookmarksCompat=%d\n\taccountDiscoDone=%d\n\t_inCatchup=%@\n\tomemo.state=%@\n\thasSeenOmemoDeviceListAfterOwnDeviceid=%@\n",
                 self.accountID,
@@ -4598,18 +4607,14 @@ NSString* const kStanza = @"stanza";
 
 -(AnyPromise*) changePassword:(NSString*) newPass
 {
-    return [AnyPromise promiseWithResolverBlock:^(PMKResolver resolve) {
+    MLPromise* promise = [[MLPromise alloc] initWithCallback:^(NSUUID* uuid) {
         XMPPIQ* iq = [[XMPPIQ alloc] initWithType:kiqSetType];
         [iq setiqTo:self.connectionProperties.identity.domain];
         [iq changePasswordForUser:self.connectionProperties.identity.user newPassword:newPass];
 
-        [self sendIq:iq withResponseHandler:^(XMPPIQ* response) {
-            resolve(nil);
-        } andErrorHandler:^(XMPPIQ* error) {
-            NSString* errorMessage = error ? [HelperTools extractXMPPError:error withDescription:NSLocalizedString(@"Could not change password", @"")] : NSLocalizedString(@"Could not change password: your account is currently not connected", @"");
-            resolve([NSError errorWithDomain:@"Monal" code:0 userInfo:@{NSLocalizedDescriptionKey: errorMessage}]);
-        }];
-    }];
+        [self sendIq:iq withHandler:$newHandlerWithInvalidation(MLIQProcessor, handleChangePassword, handleChangePasswordInvalidation, $ID(newPass), $ID(uuid))];
+    } andPromiseRegistry:self.promiseRegistry];
+    return [promise toPromise];
 }
 
 -(void) requestRegFormWithToken:(NSString* _Nullable) token andCompletion:(xmppDataCompletion) completion andErrorCompletion:(xmppCompletion) errorCompletion

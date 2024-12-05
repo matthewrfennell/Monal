@@ -12,6 +12,7 @@
 #import "MLHandler.h"
 #import "DataLayer.h"
 #import "MLImageManager.h"
+#import "MLXMPPManager.h"
 #import "HelperTools.h"
 #import "MLNotificationQueue.h"
 #import "MLContactSoftwareVersionInfo.h"
@@ -782,6 +783,20 @@ $$class_handler(handleModerationResponse, $$ID(xmpp*, account), $$ID(XMPPIQ*, iq
     [[MLNotificationQueue currentQueue] postNotificationName:kMonalContactRefresh object:account userInfo:@{
         @"contact": msg.contact,
     }];
+$$
+
+$$class_handler(handleChangePassword, $$ID(xmpp*, account), $$ID(NSString*, newPass), $$ID(NSUUID*, uuid))
+    DDLogDebug(@"Handling password change");
+    [[MLXMPPManager sharedInstance] updatePassword:newPass forAccount:account.accountID];
+    MLPromise* promise = [account.promiseRegistry getPromise:uuid];
+    [promise resolve:nil];
+$$
+
+$$class_handler(handleChangePasswordInvalidation, $$ID(xmpp*, account), $$ID(NSUUID*, uuid))
+    DDLogDebug(@"Invalidating password change");
+    NSError* error = [NSError errorWithDomain:@"Monal" code:0 userInfo:@{NSLocalizedDescriptionKey: @"Could not change password"}];
+    MLPromise* promise = [account.promiseRegistry getPromise:uuid];
+    [promise resolve:error];
 $$
 
 #ifdef IS_QUICKSY

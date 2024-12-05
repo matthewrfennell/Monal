@@ -15,6 +15,7 @@
 #import "MLContact.h"
 
 #import "MLXMPPConnection.h"
+#import "MLPromiseRegistry.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -96,6 +97,7 @@ typedef void (^monal_iq_handler_t)(XMPPIQ* _Nullable);
 @property (nonatomic, strong) MLOMEMO* omemo;
 @property (nonatomic, strong) MLPubSub* pubsub;
 @property (nonatomic, strong) MLMucProcessor* mucProcessor;
+@property (nonatomic, strong) MLPromiseRegistry* promiseRegistry;
 
 //calculated
 @property (nonatomic, strong) NSDate* connectedTime;

@@ -55,7 +55,6 @@ struct ChangePassword: View {
         }
         .done { _ in
             successAlert(title: Text("Success"), message: Text("The password has been changed"))
-            MLXMPPManager.sharedInstance().updatePassword(newPass, forAccount: accountID)
         }
         .catch { error in
             errorAlert(title: Text("Error"), message: Text(error.localizedDescription))
