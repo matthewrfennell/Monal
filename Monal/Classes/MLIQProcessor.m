@@ -372,7 +372,7 @@ $$
                                              andAccount:account.accountID];
             
             NSSet* groups = [NSSet setWithArray:[contactNode find:@"group#"]];
-            DDLogVerbose(@"Setting roster groups for contact %@: ", contact[@"jid"], groups);
+            DDLogVerbose(@"Setting roster groups for contact %@: %@", contact[@"jid"], groups);
             [[DataLayer sharedInstance] setGroups:groups
                                        forContact:contact[@"jid"]
                                         inAccount:account.accountID];
