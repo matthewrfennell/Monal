@@ -28,7 +28,7 @@ struct PasswordMigration: View {
         DDLogInfo("Migration needed: \(String(describing:self.needingMigration))")
     }
     
-    func updatePassword(_ password: String) {
+    func updatePassword(_ password: String, _ id: Int) {
         self.needingMigration[id]?["password"] = password as NSString
         if(password.count > 0) {
             //first change? --> activate account and use "needs_password_migration" to record
@@ -78,11 +78,11 @@ struct PasswordMigration: View {
                             
                             SecureField(NSLocalizedString("Password", comment: "placeholder when migrating account"), text:Binding(
                                 get: { self.needingMigration[id]?["password"] as? String ?? "" },
-                                set: { updatePassword($0) }
+                                set: { updatePassword($0, id) }
                             ))
                             .addClearButton(isEditing: true, text:Binding(
                                 get: { self.needingMigration[id]?["password"] as? String ?? "" },
-                                set: { updatePassword($0) }
+                                set: { updatePassword($0, id) }
                             ))
                         }
                     }
