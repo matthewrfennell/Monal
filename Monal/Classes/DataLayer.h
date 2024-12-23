@@ -11,6 +11,7 @@
 #import "XMPPPresence.h"
 #import "MLMessage.h"
 #import "MLContact.h"
+#import "MLPromise.h"
 #import "MLContactSoftwareVersionInfo.h"
 
 NS_ASSUME_NONNULL_BEGIN
@@ -323,6 +324,10 @@ extern NSString* const kMessageTypeFiletransfer;
 -(void) delIdleTimerWithId:(NSNumber* _Nullable) timerId;
 -(void) cleanupIdleTimerOnAccountID:(NSNumber*) accountID;
 -(void) decrementIdleTimersForAccount:(xmpp*) account;
+
+-(void) addPromise:(MLPromise*) promise;
+-(void) removePromise:(MLPromise*) promise;
+-(MLPromise*) getPromise:(MLPromise*) promise;
 
 @end
 

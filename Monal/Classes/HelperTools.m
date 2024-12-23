@@ -985,6 +985,9 @@ static void notification_center_logging(CFNotificationCenterRef center, void* ob
         [OmemoState class],
         [MLContactSoftwareVersionInfo class],
         [Quicksy_Country class],
+        [NSUUID class],
+        [MLPromise class],
+        [NSError class],
     ]] fromData:data error:&error];
     if(error)
         @throw [NSException exceptionWithName:@"NSError" reason:[NSString stringWithFormat:@"%@", error] userInfo:@{@"error": error}];

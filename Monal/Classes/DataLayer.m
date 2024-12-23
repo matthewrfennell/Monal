@@ -2539,4 +2539,39 @@ static NSDateFormatter* dbFormatter;
     }];
 }
 
+-(void) addPromise:(MLPromise*) promise
+{
+    DDLogDebug(@"Adding promise %@ with uuid %@ to DB", promise, promise.uuid);
+    [self.db voidWriteTransaction:^{
+        NSString* query = @"INSERT INTO promises (uuid, promise) VALUES (?, ?) ON CONFLICT DO UPDATE SET promise=?;";
+        NSError* error;
+        NSData* data = [NSKeyedArchiver archivedDataWithRootObject:promise requiringSecureCoding:YES error:&error];
+        if(error)
+            @throw [NSException exceptionWithName:@"NSError" reason:[NSString stringWithFormat:@"%@", error] userInfo:@{@"error": error}];
+        [self.db executeNonQuery:query andArguments:@[[promise.uuid UUIDString], data, data]];
+    }];
+}
+
+-(void) removePromise:(MLPromise*) promise
+{
+    DDLogDebug(@"Removing promise %@ with uuid %@ from DB", promise, promise.uuid);
+    [self.db voidWriteTransaction:^{
+        NSString* query = @"DELETE FROM promises WHERE uuid = ?";
+        [self.db executeNonQuery:query andArguments:@[[promise.uuid UUIDString]]];
+    }];
+}
+
+-(MLPromise*) getPromise:(MLPromise*) promise
+{
+    DDLogDebug(@"Getting promise %@ with uuid %@ from DB", promise, promise.uuid);
+    return [self.db idReadTransaction:^{
+        NSString* query = @"SELECT promise FROM promises WHERE uuid = ?";
+        NSArray* results = [self.db executeScalarReader:query andArguments:@[[promise.uuid UUIDString]]];
+        MLAssert([results count] == 1, @"Tried to retrieve a promise that did not exist in the DB");
+        NSData* data = results[0];
+        MLPromise* retrieved = [HelperTools unserializeData:data];
+        return retrieved;
+    }];
+}
+
 @end

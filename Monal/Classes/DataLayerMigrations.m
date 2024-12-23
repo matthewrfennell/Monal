@@ -1147,6 +1147,15 @@
             [db executeNonQuery:@"ALTER TABLE buddylist DROP COLUMN 'blocked';"];
         }];
 
+        // Allow persistence of MLPromises.
+        // This is needed so they can be exchanged between the main app and app extension.
+        [self updateDB:db withDataLayer:dataLayer toVersion:6.412 withBlock:^{
+            [db executeNonQuery:@"CREATE TABLE 'promises' (\
+                'uuid' CHAR(36) PRIMARY KEY, \
+                'promise' BLOB NOT NULL \
+            );"];
+        }];
+
 
         //check if device id changed and invalidate state, if so
         //but do so only for non-sandbox (e.g. non-development) installs
