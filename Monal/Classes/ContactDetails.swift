@@ -144,11 +144,11 @@ struct ContactDetails: View {
                                             Text("Yes"),
                                             action: {
                                                 showPromisingLoadingOverlay(overlay, headlineView:Text("Removing avatar..."), descriptionView:Text("")) {
-                                                    promisifyMucAction(account:account, mucJid:contact.contactJid) {
-                                                        self.account.mucProcessor.publishAvatar(nil, forMuc: contact.contactJid)
-                                                    }
+                                                    self.account.mucProcessor.publishAvatar(nil, forMuc: contact.contactJid)
                                                 }.catch { error in
-                                                    errorAlert(title: Text("Error removing avatar!"), message: Text("\(String(describing:error))"))
+                                                    let nsError = error as NSError
+                                                    let description: String = nsError.userInfo[NSLocalizedDescriptionKey] as? String ?? "Could not remove avatar. Please try again."
+                                                    errorAlert(title: Text("Error removing avatar!"), message: Text(description))
                                                     hideLoadingOverlay(overlay)
                                                 }
                                             }
@@ -664,11 +664,11 @@ struct ContactDetails: View {
                 inputImage = nil
             }) { (image, cropRect, angle) in
                 showPromisingLoadingOverlay(overlay, headlineView:Text("Uploading avatar..."), descriptionView:Text("")) {
-                    promisifyMucAction(account:account, mucJid:contact.contactJid) {
-                        self.account.mucProcessor.publishAvatar(image, forMuc: contact.contactJid)
-                    }
+                    self.account.mucProcessor.publishAvatar(image, forMuc: contact.contactJid)
                 }.catch { error in
-                    errorAlert(title: Text("Error changing avatar!"), message: Text("\(String(describing:error))"))
+                    let nsError = error as NSError
+                    let description: String = nsError.userInfo[NSLocalizedDescriptionKey] as? String ?? "Could not remove avatar. Please try again."
+                    errorAlert(title: Text("Error changing avatar!"), message: Text(description))
                     hideLoadingOverlay(overlay)
                 }
             }

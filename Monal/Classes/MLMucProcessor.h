@@ -31,7 +31,7 @@ NS_ASSUME_NONNULL_BEGIN
 -(void) destroyRoom:(NSString*) room;
 -(void) changeNameOfMuc:(NSString*) room to:(NSString*) name;
 -(void) changeSubjectOfMuc:(NSString*) room to:(NSString*) subject;
--(void) publishAvatar:(UIImage* _Nullable) image forMuc:(NSString*) room;
+-(AnyPromise*) publishAvatar:(UIImage* _Nullable) image forMuc:(NSString*) room;
 -(void) setAffiliation:(NSString*) affiliation ofUser:(NSString*) jid inMuc:(NSString*) roomJid;
 -(void) inviteUser:(NSString*) jid inMuc:(NSString*) roomJid;
 

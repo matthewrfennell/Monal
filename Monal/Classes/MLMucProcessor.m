@@ -1284,15 +1284,17 @@ $$
     [_account send:msg];
 }
 
--(void) publishAvatar:(UIImage* _Nullable) image forMuc:(NSString*) room
+-(AnyPromise*) publishAvatar:(UIImage* _Nullable) image forMuc:(NSString*) room
 {
+    MLPromise* promise = [MLPromise new];
+
     if(image == nil)
     {
         DDLogInfo(@"Removing avatar image for muc '%@'...", room);
         XMPPIQ* vcard = [[XMPPIQ alloc] initWithType:kiqSetType to:room];
         [vcard setRemoveVcardAvatar];
-        [_account sendIq:vcard withHandler:$newHandlerWithInvalidation(self, handleAvatarPublishResult, handleAvatarPublishResultInvalidation, $ID(room))];
-        return;
+        [_account sendIq:vcard withHandler:$newHandlerWithInvalidation(self, handleAvatarPublishResult, handleAvatarPublishResultInvalidation, $ID(room), $ID(promise))];
+        return [promise toAnyPromise];
     }
     //should work for ejabberd >= 19.02 and prosody >= 0.11
     NSData* imageData = [HelperTools resizeAvatarImage:image withCircularMask:NO toMaxBase64Size:60000];
@@ -1301,23 +1303,28 @@ $$
     DDLogInfo(@"Publishing avatar image for muc '%@' with hash %@", room, imageHash);
     XMPPIQ* vcard = [[XMPPIQ alloc] initWithType:kiqSetType to:room];
     [vcard setVcardAvatarWithData:imageData andType:@"image/jpeg"];
-    [_account sendIq:vcard withHandler:$newHandlerWithInvalidation(self, handleAvatarPublishResult, handleAvatarPublishResultInvalidation, $ID(room))];
+    [_account sendIq:vcard withHandler:$newHandlerWithInvalidation(self, handleAvatarPublishResult, handleAvatarPublishResultInvalidation, $ID(room), $ID(promise))];
+
+    return [promise toAnyPromise];
 }
 
-$$instance_handler(handleAvatarPublishResultInvalidation, account.mucProcessor, $$ID(xmpp*, account), $$ID(NSString*, room))
-    DDLogError(@"Publishing avatar for muc '%@' returned timeout", room);
-    [self handleError:[NSString stringWithFormat:NSLocalizedString(@"Failed to publish avatar image for group/channel %@", @""), room] forMuc:room withNode:nil andIsSevere:YES];
+$$instance_handler(handleAvatarPublishResultInvalidation, account.mucProcessor, $$ID(xmpp*, account), $$ID(NSString*, room), $$ID(MLPromise*, promise))
+    NSString* errorString = [NSString stringWithFormat:NSLocalizedString(@"Publishing avatar for muc '%@' returned timeout", @""), room];
+    NSError* error = [NSError errorWithDomain:@"Monal" code:0 userInfo:@{NSLocalizedDescriptionKey: errorString}];
+    [promise reject:error];
 $$
 
-$$instance_handler(handleAvatarPublishResult, account.mucProcessor, $$ID(xmpp*, account), $$ID(XMPPIQ*, iqNode))
+$$instance_handler(handleAvatarPublishResult, account.mucProcessor, $$ID(xmpp*, account), $$ID(XMPPIQ*, iqNode), $$ID(MLPromise*, promise))
     if([iqNode check:@"/<type=error>"])
     {
         DDLogError(@"Publishing avatar for muc '%@' returned error: %@", iqNode.fromUser, [iqNode findFirst:@"error"]);
-        [self handleError:[NSString stringWithFormat:NSLocalizedString(@"Failed to publish avatar image for group/channel %@", @""), iqNode.fromUser] forMuc:iqNode.fromUser withNode:iqNode andIsSevere:YES];
+        NSString* errorString = [NSString stringWithFormat:NSLocalizedString(@"Failed to publish avatar image for group/channel %@", @""), iqNode.fromUser];
+        NSError* error = [NSError errorWithDomain:@"Monal" code:0 userInfo:@{NSLocalizedDescriptionKey: errorString}];
+        [promise reject:error];
         return;
     }
     DDLogInfo(@"Successfully published avatar for muc: %@", iqNode.fromUser);
-    [self callSuccessUIHandlerForMuc:iqNode.fromUser];
+    [promise fulfill:nil];
 $$
 
 $$instance_handler(handleDiscoResponseInvalidation, account.mucProcessor, $$ID(xmpp*, account), $$ID(NSString*, roomJid))
