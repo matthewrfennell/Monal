@@ -30,6 +30,8 @@ NS_ASSUME_NONNULL_BEGIN
 -(void) reject:(NSError*) error;
 -(AnyPromise*) toAnyPromise;
 
++(void) removeStalePromises;
+
 @end
 
 NS_ASSUME_NONNULL_END

@@ -394,6 +394,9 @@ $$
         [[MLImageManager sharedInstance] cleanupHashes];
     });
     
+    // Remove stale promises left in the DB that weren't consumed last time we ran the app
+    [MLPromise removeStalePromises];
+
     //only proceed with launching if the NotificationServiceExtension is *not* running
     if([MLProcessLock checkRemoteRunning:@"NotificationServiceExtension"])
     {

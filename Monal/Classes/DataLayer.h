@@ -327,6 +327,7 @@ extern NSString* const kMessageTypeFiletransfer;
 
 -(void) addPromise:(MLPromise*) promise;
 -(void) removePromise:(MLPromise*) promise;
+-(void) removeAllPromises;
 -(MLPromise*) getPromise:(MLPromise*) promise;
 
 @end
