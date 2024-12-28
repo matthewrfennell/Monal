@@ -11,6 +11,7 @@
 #import "DataLayer.h"
 #import "HelperTools.h"
 #import "MLPromise.h"
+#import "MLXMPPManager.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -206,7 +207,13 @@ static NSMutableDictionary* _resolvers;
         return;
     }
 
-    if(!self.isStale)
+    if(self.isStale && self.state == PromiseResolutionStateRejected)
+    {
+        DDLogDebug(@"Promise %@ with uuid %@ is both stale and rejected - posting error", self, self.uuid);
+        xmpp* account = [[MLXMPPManager sharedInstance] getEnabledAccountForID:self.rejection.accountID];
+        [HelperTools postError:self.rejection.errorDescription withNode:self.rejection.node andAccount:account andIsSevere:NO];
+    }
+    else if(!self.isStale)
     {
         DDLogDebug(@"Resolving promise %@ with uuid %@ and argument %@", self, self.uuid, self.resolvedArgument);
         resolve(self.resolvedArgument);
