@@ -393,9 +393,6 @@ $$
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
         [[MLImageManager sharedInstance] cleanupHashes];
     });
-    
-    // Remove stale promises left in the DB that weren't consumed last time we ran the app
-    [MLPromise consumeStalePromises];
 
     //only proceed with launching if the NotificationServiceExtension is *not* running
     if([MLProcessLock checkRemoteRunning:@"NotificationServiceExtension"])
@@ -558,6 +555,9 @@ $$
     
     //should any accounts connect?
     [self connectIfNecessaryWithOptions:launchOptions];
+
+    // Consume stale promises left in the DB that weren't consumed last time we ran the app
+    [MLPromise consumeStalePromises];
     
     //handle IPC messages (this should be done *after* calling connectIfNecessary to make sure any disconnectAll messages are handled properly
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(incomingIPC:) name:kMonalIncomingIPC object:nil];
