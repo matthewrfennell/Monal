@@ -9,6 +9,8 @@
 #ifndef MLVoIPProcessor_h
 #define MLVoIPProcessor_h
 
+#import <Foundation/Foundation.h>
+
 NS_ASSUME_NONNULL_BEGIN
 
 @class CXCallController;
