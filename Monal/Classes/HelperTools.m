@@ -418,7 +418,7 @@ static void notification_center_logging(CFNotificationCenterRef center, void* ob
     if(udpLoggerEnabled && _suspensionHandling_isSuspended)
     {
         //this marks a message as already directly logged to allow the udp logger to later ignore the queued log request for the same message
-        logMessage.ml_isDirect = YES;
+        logMessage.ml_isDirect = NO;
         [MLUDPLogger directlyWriteLogMessage:logMessage];
     }
     else
