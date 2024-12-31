@@ -87,7 +87,7 @@ static volatile MLUDPLogger* _self;
         [[self class] logError:@"Ignoring call to directlySyncWriteLogMessage: _self still nil!"];
         return;
     }
-    return [_self logMessage:logMessage];
+    return [_self realLogMessage:logMessage wasDirect:YES];
 }
 
 -(void) dealloc
@@ -244,10 +244,19 @@ static volatile MLUDPLogger* _self;
 
 -(void) logMessage:(DDLogMessage*) logMessage
 {
+    return [self realLogMessage:logMessage wasDirect:NO];
+}
+
+-(void) realLogMessage:(DDLogMessage*) logMessage wasDirect:(BOOL) direct
+{
     static uint64_t counter = 0;
     
     //early return if deactivated
     if(![[HelperTools defaultsDB] boolForKey: @"udpLoggerEnabled"])
+        return;
+    
+    //ignore log messages already udp-logged as direct messages when handling queued messages
+    if(!direct && logMessage.ml_isDirect)
         return;
     
     NSError* error = nil; 

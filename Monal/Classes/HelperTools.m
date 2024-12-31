@@ -332,6 +332,18 @@ static void notification_center_logging(CFNotificationCenterRef center, void* ob
 }
 @end
 
+@implementation DDLogMessage(TaggedMessage)
+@dynamic ml_isDirect;
+-(void) setMl_isDirect:(BOOL) value
+{
+    objc_setAssociatedObject(self, @selector(ml_isDirect), @(value), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+-(BOOL) ml_isDirect
+{
+    return ((NSNumber*)objc_getAssociatedObject(self, @selector(ml_isDirect))).boolValue;
+}
+@end
+
 @implementation NSUserDefaults (SerializeNSObject)
 -(id) swizzled_objectForKey:(NSString*) defaultName
 {
@@ -401,31 +413,21 @@ static void notification_center_logging(CFNotificationCenterRef center, void* ob
         udpLoggerEnabled = [[HelperTools defaultsDB] boolForKey:@"udpLoggerEnabled"];
     });
     
+    //use udp logger to log all messages, even if the loggging queue is in suspended state
+    //this hopefully enables us to catch strange bugs sometimes hanging and then watchdog-killing the app when resuming from resumption
+    if(udpLoggerEnabled && _suspensionHandling_isSuspended)
+    {
+        //this marks a message as already directly logged to allow the udp logger to later ignore the queued log request for the same message
+        logMessage.ml_isDirect = YES;
+        [MLUDPLogger directlyWriteLogMessage:logMessage];
+    }
+    else
+        logMessage.ml_isDirect = NO;
+    
     //don't do sync logging for any message (usually ERROR), while the global logging queue is suspended
     //don't use _suspensionHandling_lock here because that can introduce deadlocks
     //(for example if we have log statements in our MLLogFileManager code rotating the logfile and creating a new one)
-    BOOL isSuspended = _suspensionHandling_isSuspended;
-    if(isSuspended && udpLoggerEnabled)
-    {
-        //use udp logger to log all messages, even if the loggging queue is in suspended state
-        //this hopefully enables us to catch strange bugs sometimes hanging and then watchdog-killing the app when resuming from resumption
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-        [MLUDPLogger directlyWriteLogMessage:[[DDLogMessage alloc]
-             initWithFormat:[NSString stringWithFormat:@"+++ LOG_QUEUE_DISABLED+++ %@", logMessage.messageFormat]
-                  formatted:[NSString stringWithFormat:@"+++ LOG_QUEUE_DISABLED+++ %@", logMessage.message]
-                      level:logMessage.level
-                       flag:logMessage.flag
-                    context:logMessage.context
-                       file:logMessage.file
-                   function:logMessage.function
-                       line:logMessage.line
-                        tag:logMessage.tag
-                    options:logMessage.options
-                  timestamp:logMessage.timestamp]];
-#pragma clang diagnostic pop
-    }
-    return [self swizzled_queueLogMessage:logMessage asynchronously:isSuspended ? YES : asyncFlag];
+    return [self swizzled_queueLogMessage:logMessage asynchronously:_suspensionHandling_isSuspended ? YES : asyncFlag];
 }
 
 //see https://stackoverflow.com/a/13326633 and https://fek.io/blog/method-swizzling-in-obj-c-and-swift/
@@ -2121,10 +2123,10 @@ static void notification_center_logging(CFNotificationCenterRef center, void* ob
         @"queueThreadLabel": nilWrapper([self getQueueThreadLabelFor:logMessage]),
         @"processType": [self isAppExtension] ? @"appex" : @"mainapp",
         @"processName": nilWrapper([[[NSBundle mainBundle] executablePath] lastPathComponent]),
-        @"counter": [NSNumber numberWithUnsignedLongLong:*counter],
+        @"counter": @(*counter),
         @"processID": nilWrapper(_processID),
         @"qosName": nilWrapper(qos2name(logMessage.qos)),
-        @"loggingQueueSuspended": bool2str(_suspensionHandling_isSuspended),
+        @"loggingQueueSuspended": @([self isAppSuspended]),
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
         @"tag": nilWrapper(logMessage.tag),
@@ -2133,21 +2135,21 @@ static void notification_center_logging(CFNotificationCenterRef center, void* ob
     NSDictionary* msgDict = @{
         @"messageFormat": nilWrapper(logMessage.messageFormat),
         @"message": nilWrapper(logMessage.message),
-        @"level": [NSNumber numberWithInteger:logMessage.level],
-        @"flag": [NSNumber numberWithInteger:logMessage.flag],
-        @"context": [NSNumber numberWithInteger:logMessage.context],
+        @"level": @(logMessage.level),
+        @"flag": @(logMessage.flag),
+        @"context": @(logMessage.context),
         @"file": nilWrapper(logMessage.file),
         @"fileName": nilWrapper(logMessage.fileName),
         @"function": nilWrapper(logMessage.function),
-        @"line": [NSNumber numberWithInteger:logMessage.line],
+        @"line": @(logMessage.line),
         @"representedObject": nilWrapper(logMessage.representedObject),
         @"tag": nilWrapper(tag),
-        @"options": [NSNumber numberWithInteger:logMessage.options],
+        @"options": @(logMessage.options),
         @"timestamp": [dateFormatter stringFromDate:logMessage.timestamp],
         @"threadID": nilWrapper(logMessage.threadID),
         @"threadName": nilWrapper(logMessage.threadName),
         @"queueLabel": nilWrapper(logMessage.queueLabel),
-        @"qos": [NSNumber numberWithInteger:logMessage.qos],
+        @"qos": @(logMessage.qos),
     };
     
     //encode json into NSData
@@ -2168,6 +2170,13 @@ static void notification_center_logging(CFNotificationCenterRef center, void* ob
     [_stdoutRedirector flushWithTimeout:timeout];
     [DDLog flushLog];
     [MLUDPLogger flushWithTimeout:timeout];
+}
+
++(BOOL) isAppSuspended
+{
+    @synchronized(_suspensionHandling_lock) {
+        return _suspensionHandling_isSuspended;
+    }
 }
 
 +(void) signalSuspension
