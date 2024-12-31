@@ -87,7 +87,7 @@ static volatile MLUDPLogger* _self;
         [[self class] logError:@"Ignoring call to directlySyncWriteLogMessage: _self still nil!"];
         return;
     }
-    return [_self realLogMessage:logMessage wasDirect:YES];
+    return [_self realLogMessage:logMessage isDirect:YES];
 }
 
 -(void) dealloc
@@ -244,10 +244,10 @@ static volatile MLUDPLogger* _self;
 
 -(void) logMessage:(DDLogMessage*) logMessage
 {
-    return [self realLogMessage:logMessage wasDirect:NO];
+    return [self realLogMessage:logMessage isDirect:NO];
 }
 
--(void) realLogMessage:(DDLogMessage*) logMessage wasDirect:(BOOL) direct
+-(void) realLogMessage:(DDLogMessage*) logMessage isDirect:(BOOL) direct
 {
     static uint64_t counter = 0;
     
@@ -258,6 +258,22 @@ static volatile MLUDPLogger* _self;
     //ignore log messages already udp-logged as direct messages when handling queued messages
     if(!direct && logMessage.ml_isDirect)
         return;
+    
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    logMessage = [[DDLogMessage alloc]
+             initWithFormat:logMessage.messageFormat
+                  formatted:[NSString stringWithFormat:@"direct=%@, logMessage.ml_isDirect=%@ ~~~ %@", bool2str(direct), bool2str(logMessage.ml_isDirect), logMessage.message]
+                      level:logMessage.level
+                       flag:logMessage.flag
+                    context:logMessage.context
+                       file:logMessage.file
+                   function:logMessage.function
+                       line:logMessage.line
+                        tag:logMessage.tag
+                    options:logMessage.options
+                  timestamp:logMessage.timestamp];
+#pragma clang diagnostic pop
     
     NSError* error = nil; 
     NSData* rawData = [HelperTools convertLogmessageToJsonData:logMessage counter:&counter andError:&error];
