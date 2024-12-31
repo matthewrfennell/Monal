@@ -215,7 +215,7 @@ struct Quicksy_RegisterAccount: View {
                     HStack {
                         Text("Country:")
                         Picker(selection: $selectedCountry, label: EmptyView()) {
-                            ForEach(countries) { country in
+                            ForEach(countries, id: \.id) { country in
                                 Text("\(country2name(country)) (\(country.code))").tag(country as Quicksy_Country?)
                             }
                         }
