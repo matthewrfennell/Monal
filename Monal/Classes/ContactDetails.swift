@@ -673,9 +673,6 @@ struct ContactDetails: View {
                 }
             }
         }
-        .onChange(of:contact.avatar as UIImage) { _ in
-            hideLoadingOverlay(overlay)
-        }
         .onAppear {
             self.updateRoleAndAffiliation()
         }
