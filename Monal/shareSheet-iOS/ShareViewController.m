@@ -12,7 +12,7 @@
 #import "MLContact.h"
 #import "MLConstants.h"
 #import "HelperTools.h"
-#import "DataLayer.h"
+#import "MLDataLayer.h"
 #import "MLFiletransfer.h"
 #import "IPC.h"
 
@@ -74,8 +74,8 @@
     // list all contacts, not only active chats
     // that will clutter the list of selectable contacts, but you can always use sirikit interactions
     // to get the recently used contacts listed
-    self.recipients = [[DataLayer sharedInstance] contactList];
-    self.accounts = [[DataLayer sharedInstance] enabledAccountList];
+    self.recipients = [[MLDataLayer sharedInstance] contactList];
+    self.accounts = [[MLDataLayer sharedInstance] enabledAccountList];
 
     if(self.intentContact != nil)
     {
@@ -155,7 +155,7 @@
                 payload[@"type"] = @"text";
                 payload[@"data"] = self.contentText;
                 DDLogDebug(@"Adding shareSheet comment payload: %@", payload);
-                [[DataLayer sharedInstance] addShareSheetPayload:payload];
+                [[MLDataLayer sharedInstance] addShareSheetPayload:payload];
                 saved++;
             }
             [self.extensionContext completeRequestReturningItems:@[] completionHandler:^(BOOL expired __unused) {
@@ -204,7 +204,7 @@
                 payload[@"account_id"] = self.recipient.accountID;
                 payload[@"recipient"] = self.recipient.contactJid;
                 DDLogDebug(@"Adding shareSheet payload(%u): %@", loading, payload);
-                [[DataLayer sharedInstance] addShareSheetPayload:payload];
+                [[MLDataLayer sharedInstance] addShareSheetPayload:payload];
                 saved++;
                 loading--;
                 checkIfDone();

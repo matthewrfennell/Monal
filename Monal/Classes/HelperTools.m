@@ -50,7 +50,7 @@ extern int64_t kscrs_getNextCrashReport(char* crashReportPathBuffer);
 #import "MLContact.h"
 #import "MLMessage.h"
 #import "MLFiletransfer.h"
-#import "DataLayer.h"
+#import "MLDataLayer.h"
 #import "OmemoState.h"
 #import "MLUDPLogger.h"
 #import "MLStreamRedirect.h"
@@ -532,9 +532,9 @@ static void notification_center_logging(CFNotificationCenterRef center, void* ob
     [[MLXMPPManager sharedInstance] disconnectAccount:account.accountID withExplicitLogout:YES];
 
     //make sure we don't try this again even when the mainapp/appex gets restarted
-    NSMutableDictionary* accountDic = [[NSMutableDictionary alloc] initWithDictionary:[[DataLayer sharedInstance] detailsForAccount:account.accountID] copyItems:YES];
+    NSMutableDictionary* accountDic = [[NSMutableDictionary alloc] initWithDictionary:[[MLDataLayer sharedInstance] detailsForAccount:account.accountID] copyItems:YES];
     accountDic[kEnabled] = @NO;
-    [[DataLayer sharedInstance] updateAccounWithDictionary:accountDic];    
+    [[MLDataLayer sharedInstance] updateAccounWithDictionary:accountDic];    
 }
 
 +(void) postError:(NSString*) description withNode:(XMPPStanza* _Nullable) node andAccount:(xmpp*) account andIsSevere:(BOOL) isSevere
@@ -1825,7 +1825,7 @@ static void notification_center_logging(CFNotificationCenterRef center, void* ob
 +(void) removeAllShareInteractionsForAccountID:(NSNumber*) accountID
 {
     DDLogInfo(@"Removing share interaction for all contacts on account id %@", accountID);
-    for(MLContact* contact in [[DataLayer sharedInstance] contactList])
+    for(MLContact* contact in [[MLDataLayer sharedInstance] contactList])
         if(contact.accountID.intValue == accountID.intValue)
             [contact removeShareInteractions];
 }

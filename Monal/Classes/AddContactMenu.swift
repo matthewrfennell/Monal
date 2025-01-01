@@ -170,7 +170,7 @@ struct AddContactMenu: View {
             }
             else
             {
-                if DataLayer.sharedInstance().allContactRequests().count > 0 {
+                if MLDataLayer.sharedInstance().allContactRequests().count > 0 {
                     ContactRequestsMenu()
                 }
                 
@@ -237,7 +237,7 @@ struct AddContactMenu: View {
                     }
                 }
                 
-                if DataLayer.sharedInstance().allContactRequests().count == 0 {
+                if MLDataLayer.sharedInstance().allContactRequests().count == 0 {
                     Section {
                         ContactRequestsMenu()
                     }

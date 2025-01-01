@@ -1,5 +1,5 @@
 //
-//  DataLayer.h
+//  MLDataLayer.h
 //  SworIM
 //
 //  Created by Anurodh Pokharel on 3/28/09.
@@ -17,7 +17,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface DataLayer : NSObject
+@interface MLDataLayer : NSObject
 
 extern NSString* const kAccountID;
 extern NSString* const kAccountState;
@@ -41,7 +41,7 @@ extern NSString* const kMessageTypeGeo;
 extern NSString* const kMessageTypeUrl;
 extern NSString* const kMessageTypeFiletransfer;
 
-+(DataLayer*) sharedInstance;
++(MLDataLayer*) sharedInstance;
 -(NSString* _Nullable) exportDB;
 -(void) createTransaction:(monal_void_block_t) block;
 -(void) vacuum;

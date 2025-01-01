@@ -40,7 +40,7 @@ struct AccountPicker: View {
                 
                 List {
                     ForEach(contacts) { contact in
-                        if let accountEntry = DataLayer.sharedInstance().details(forAccount:contact.accountID) {
+                        if let accountEntry = MLDataLayer.sharedInstance().details(forAccount:contact.accountID) {
                             let accountJid = "\(accountEntry["username"] ?? "<unknown>" as NSString)@\(accountEntry["domain"] ?? "<unknown>" as NSString)"
                             let accountContact = MLContact.createContact(fromJid:accountJid, andAccountID:accountEntry["account_id"] as! NSNumber)
                             Button {

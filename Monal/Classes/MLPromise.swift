@@ -68,7 +68,7 @@ public class MLPromise : NSObject {
     }
 
     private func serialize() {
-        DataLayer.sharedInstance().add(for: self)
+        MLDataLayer.sharedInstance().add(self)
     }
 
     @objc private func deserialize() {

@@ -67,7 +67,7 @@ func getContactList(viewContact: (ObservableKVOWrapper<MLContact>?)) -> OrderedS
             //this uses the account the muc belongs to and treats every other account to be remote,
             //even when multiple accounts of the same monal instance are in the same group
             var contactList : OrderedSet<ObservableKVOWrapper<MLContact>> = OrderedSet()
-            for memberInfo in Array(DataLayer.sharedInstance().getMembersAndParticipants(ofMuc: contact.contactJid, forAccountID: contact.accountID)) {
+            for memberInfo in Array(MLDataLayer.sharedInstance().getMembersAndParticipants(ofMuc: contact.contactJid, forAccountID: contact.accountID)) {
                 //jid can be participant_jid (if currently joined to muc) or member_jid (if not joined but member of muc)
                 guard let jid = memberInfo["participant_jid"] as? String ?? memberInfo["member_jid"] as? String else {
                     continue

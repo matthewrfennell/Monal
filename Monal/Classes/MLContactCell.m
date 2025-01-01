@@ -10,7 +10,7 @@
 #import "MLConstants.h"
 #import "MLContact.h"
 #import "MLMessage.h"
-#import "DataLayer.h"
+#import "MLDataLayer.h"
 #import "MLXEPSlashMeHandler.h"
 #import "HelperTools.h"
 #import "MLXMPPManager.h"

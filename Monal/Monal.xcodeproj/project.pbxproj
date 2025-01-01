@@ -66,7 +66,7 @@
 		26CC57C923A0892800ABB92A /* MLMessageProcessor.m in Sources */ = {isa = PBXBuildFile; fileRef = 2633CB42231CB816006D0277 /* MLMessageProcessor.m */; };
 		26CC57CA23A0892800ABB92A /* MLIQProcessor.m in Sources */ = {isa = PBXBuildFile; fileRef = 2661101B238F10360030A4EE /* MLIQProcessor.m */; };
 		26CC57CB23A0892800ABB92A /* MLPresenceProcessor.m in Sources */ = {isa = PBXBuildFile; fileRef = 26611020238F104B0030A4EE /* MLPresenceProcessor.m */; };
-		26CC57D323A08D7100ABB92A /* DataLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 2601D9A70FBF255D004DB939 /* DataLayer.m */; };
+		26CC57D323A08D7100ABB92A /* MLDataLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 2601D9A70FBF255D004DB939 /* MLDataLayer.m */; };
 		26CC57D423A08D7100ABB92A /* MLImageManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 26EC411217BDE39E0031304D /* MLImageManager.m */; };
 		26CC57D523A08D7100ABB92A /* MLSignalStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 263AFDFB209B3B35007F9CEE /* MLSignalStore.m */; };
 		26CC57DA23A08DD800ABB92A /* MLXMPPManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 26352EA7177D222600E2C8FF /* MLXMPPManager.m */; };
@@ -89,7 +89,7 @@
 		340F0CA62D24267B006224D0 /* MLXMLNode.h in Headers */ = {isa = PBXBuildFile; fileRef = 260C51D2177F44AD0039634B /* MLXMLNode.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		340F0CAA2D2429E1006224D0 /* MLPromise.swift in Sources */ = {isa = PBXBuildFile; fileRef = 340F0CA92D2429E1006224D0 /* MLPromise.swift */; };
 		3424B4E72D232BE2009F6503 /* MLContact.h in Headers */ = {isa = PBXBuildFile; fileRef = 26611029238F17CA0030A4EE /* MLContact.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		3424B4E82D232BE7009F6503 /* DataLayer.h in Headers */ = {isa = PBXBuildFile; fileRef = 2601D9A80FBF255D004DB939 /* DataLayer.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		3424B4E82D232BE7009F6503 /* MLDataLayer.h in Headers */ = {isa = PBXBuildFile; fileRef = 2601D9A80FBF255D004DB939 /* MLDataLayer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3424B4E92D232BEB009F6503 /* xmpp.h in Headers */ = {isa = PBXBuildFile; fileRef = 260C51CF177F08F50039634B /* xmpp.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3424B4EA2D232BF5009F6503 /* MLSignalStore.h in Headers */ = {isa = PBXBuildFile; fileRef = 263AFDFA209B3B35007F9CEE /* MLSignalStore.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3424B4EB2D232BFA009F6503 /* MLXMPPManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 26352EA6177D222600E2C8FF /* MLXMPPManager.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -343,8 +343,8 @@
 		21E99538324C14220843F325 /* Pods-shareSheet.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-shareSheet.debug.xcconfig"; path = "Target Support Files/Pods-shareSheet/Pods-shareSheet.debug.xcconfig"; sourceTree = "<group>"; };
 		222F09C97CFF93A2CF1007F3 /* Pods-MonalUITests.alpha-ios.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MonalUITests.alpha-ios.xcconfig"; path = "Target Support Files/Pods-MonalUITests/Pods-MonalUITests.alpha-ios.xcconfig"; sourceTree = "<group>"; };
 		2369191B3FCB2E941169A093 /* Pods-MonalXMPPUnitTests.appstore.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MonalXMPPUnitTests.appstore.xcconfig"; path = "Target Support Files/Pods-MonalXMPPUnitTests/Pods-MonalXMPPUnitTests.appstore.xcconfig"; sourceTree = "<group>"; };
-		2601D9A70FBF255D004DB939 /* DataLayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DataLayer.m; sourceTree = "<group>"; };
-		2601D9A80FBF255D004DB939 /* DataLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DataLayer.h; sourceTree = "<group>"; };
+		2601D9A70FBF255D004DB939 /* MLDataLayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MLDataLayer.m; sourceTree = "<group>"; };
+		2601D9A80FBF255D004DB939 /* MLDataLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLDataLayer.h; sourceTree = "<group>"; };
 		2601D9CA0FBF25EF004DB939 /* sworim.sqlite */ = {isa = PBXFileReference; lastKnownFileType = file; path = sworim.sqlite; sourceTree = "<group>"; };
 		260773C0232FC4E800BFD50F /* NotificationService.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NotificationService.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		260773C2232FC4E800BFD50F /* NotificationService.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NotificationService.h; sourceTree = "<group>"; };
@@ -882,8 +882,8 @@
 				260C51CE177F08CF0039634B /* XMPP */,
 				26352EA5177D21FC00E2C8FF /* Managers */,
 				26F7BB3A1115F8A300712672 /* tools */,
-				2601D9A70FBF255D004DB939 /* DataLayer.m */,
-				2601D9A80FBF255D004DB939 /* DataLayer.h */,
+				2601D9A70FBF255D004DB939 /* MLDataLayer.m */,
+				2601D9A80FBF255D004DB939 /* MLDataLayer.h */,
 				262D9EAB17924532009292B4 /* MLConstants.h */,
 				26EC411117BDE39E0031304D /* MLImageManager.h */,
 				26EC411217BDE39E0031304D /* MLImageManager.m */,
@@ -1531,7 +1531,7 @@
 				340F0CA12D2425AA006224D0 /* MLXMPPConnection.h in Headers */,
 				26D4389123A5EB6C00242AAA /* MLConstants.h in Headers */,
 				3424B4E92D232BEB009F6503 /* xmpp.h in Headers */,
-				3424B4E82D232BE7009F6503 /* DataLayer.h in Headers */,
+				3424B4E82D232BE7009F6503 /* MLDataLayer.h in Headers */,
 				3424B4E72D232BE2009F6503 /* MLContact.h in Headers */,
 				3424B4ED2D232C07009F6503 /* MLVoIPProcessor.h in Headers */,
 				3424B4EC2D232BFF009F6503 /* MLImageManager.h in Headers */,
@@ -2224,7 +2224,7 @@
 				26CC57A423A086AA00ABB92A /* MLXMPPServer.m in Sources */,
 				540A3FAD24D674BD0008965D /* MLSQLite.m in Sources */,
 				26CC57CA23A0892800ABB92A /* MLIQProcessor.m in Sources */,
-				26CC57D323A08D7100ABB92A /* DataLayer.m in Sources */,
+				26CC57D323A08D7100ABB92A /* MLDataLayer.m in Sources */,
 				26CC57A323A086AA00ABB92A /* MLDNSLookup.m in Sources */,
 				C10490E32612F3D00054AC9E /* MLCrypto.swift in Sources */,
 				C1F5C7AA2775DA000001F295 /* MLContactSoftwareVersionInfo.m in Sources */,

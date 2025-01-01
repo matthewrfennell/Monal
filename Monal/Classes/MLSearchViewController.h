@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "MLContact.h"
-#import "DataLayer.h"
+#import "MLDataLayer.h"
 
 @protocol SearchResultDelegate
 - (void) doGoSearchResultAction:(NSNumber*_Nullable) nextDBId;

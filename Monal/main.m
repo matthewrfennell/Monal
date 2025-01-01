@@ -9,7 +9,7 @@
 #import <UIKit/UIKit.h>
 #import "HelperTools.h"
 #import "MonalAppDelegate.h"
-#import "DataLayer.h"
+#import "MLDataLayer.h"
 #import "MLConstants.h"
 
 int main(int argc, char *argv[]) {
@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
             [UIView setAnimationsEnabled:NO];
         // invalidate account states
         if([NSProcessInfo.processInfo.arguments containsObject:@"--invalidateAccountStates"])
-            [[DataLayer sharedInstance] invalidateAllAccountStates];
+            [[MLDataLayer sharedInstance] invalidateAllAccountStates];
         
         return UIApplicationMain(argc, argv, nil, NSStringFromClass([MonalAppDelegate class]));
     }

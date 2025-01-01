@@ -10,7 +10,7 @@
 #import "MLIQProcessor.h"
 #import "MLConstants.h"
 #import "MLHandler.h"
-#import "DataLayer.h"
+#import "MLDataLayer.h"
 #import "MLImageManager.h"
 #import "HelperTools.h"
 #import "MLNotificationQueue.h"
@@ -125,7 +125,7 @@
                 for(NSDictionary* item in unBlockItems)
                 {
                     if(item && item[@"jid"])
-                        [[DataLayer sharedInstance] unBlockJid:item[@"jid"] withAccountID:account.accountID];
+                        [[MLDataLayer sharedInstance] unBlockJid:item[@"jid"] withAccountID:account.accountID];
                 }
                 if(unBlockItems && unBlockItems.count == 0)
                 {
@@ -140,7 +140,7 @@
                 for(NSDictionary* item in [iqNode find:@"{urn:xmpp:blocking}block/item@@"])
                 {
                     if(item && item[@"jid"])
-                        [[DataLayer sharedInstance] blockJid:item[@"jid"] withAccountID:account.accountID];
+                        [[MLDataLayer sharedInstance] blockJid:item[@"jid"] withAccountID:account.accountID];
                 }
                 blockingUpdated = YES;
             }
@@ -182,7 +182,7 @@ $$class_handler(handleCatchup, $$ID(xmpp*, account), $$ID(XMPPIQ*, iqNode), $$BO
         {
             //latestMessage can be nil, thus [latestMessage timestamp] will return nil and setMAMQueryAfterTimestamp:nil
             //will query the whole archive since dawn of time
-            MLMessage* latestMessage = [[DataLayer sharedInstance] messageForHistoryID:[[DataLayer sharedInstance] getBiggestHistoryId]];
+            MLMessage* latestMessage = [[MLDataLayer sharedInstance] messageForHistoryID:[[MLDataLayer sharedInstance] getBiggestHistoryId]];
             DDLogInfo(@"Querying COMPLETE muc mam:2 archive at %@ after timestamp %@ for catchup", account.connectionProperties.identity.jid, [latestMessage timestamp]);
             XMPPIQ* mamQuery = [[XMPPIQ alloc] initWithType:kiqSetType];
             [mamQuery setMAMQueryAfterTimestamp:[latestMessage timestamp]];
@@ -226,7 +226,7 @@ $$class_handler(handleMamResponseWithLatestId, $$ID(xmpp*, account), $$ID(XMPPIQ
     //no more messages will get lost
     //we ignore this single message loss here, because it should be super rare and solving it would be really complicated
     if([iqNode check:@"{urn:xmpp:mam:2}fin/{http://jabber.org/protocol/rsm}set/last#"])
-        [[DataLayer sharedInstance] setLastStanzaId:[iqNode findFirst:@"{urn:xmpp:mam:2}fin/{http://jabber.org/protocol/rsm}set/last#"] forAccount:account.accountID];
+        [[MLDataLayer sharedInstance] setLastStanzaId:[iqNode findFirst:@"{urn:xmpp:mam:2}fin/{http://jabber.org/protocol/rsm}set/last#"] forAccount:account.accountID];
     [account mamFinishedFor:account.connectionProperties.identity.jid];
 $$
 
@@ -261,9 +261,9 @@ $$class_handler(handleBind, $$ID(xmpp*, account), $$ID(XMPPIQ*, iqNode))
     DDLogDebug(@"bareJid=%@, resource=%@, fullJid=%@", account.connectionProperties.identity.jid, account.connectionProperties.identity.resource, account.connectionProperties.identity.fullJid);
     
     //update resource in db (could be changed by server)
-    NSMutableDictionary* accountDict = [[NSMutableDictionary alloc] initWithDictionary:[[DataLayer sharedInstance] detailsForAccount:account.accountID]];
+    NSMutableDictionary* accountDict = [[NSMutableDictionary alloc] initWithDictionary:[[MLDataLayer sharedInstance] detailsForAccount:account.accountID]];
     accountDict[kResource] = account.connectionProperties.identity.resource;
-    [[DataLayer sharedInstance] updateAccounWithDictionary:accountDict];
+    [[MLDataLayer sharedInstance] updateAccounWithDictionary:accountDict];
     
     if(account.connectionProperties.supportsSM3)
     {
@@ -326,15 +326,15 @@ $$
         
         contact[@"jid"] = [[NSString stringWithFormat:@"%@", contact[@"jid"]] lowercaseString];
         MLContact* contactObj = [MLContact createContactFromJid:contact[@"jid"] andAccountID:account.accountID];
-        BOOL isKnownUser = [[DataLayer sharedInstance] contactDictionaryForUsername:contact[@"jid"] forAccount:account.accountID] != nil;
+        BOOL isKnownUser = [[MLDataLayer sharedInstance] contactDictionaryForUsername:contact[@"jid"] forAccount:account.accountID] != nil;
         if([[contact objectForKey:@"subscription"] isEqualToString:kSubRemove])
         {
             if(contactObj.isMuc)
                 DDLogWarn(@"Got roster remove request for MUC, ignoring it (possibly even triggered by us).");
             else
             {
-                [[DataLayer sharedInstance] deleteContactRequest:contactObj];
-                [[DataLayer sharedInstance] removeBuddy:contact[@"jid"] forAccount:account.accountID];
+                [[MLDataLayer sharedInstance] deleteContactRequest:contactObj];
+                [[MLDataLayer sharedInstance] removeBuddy:contact[@"jid"] forAccount:account.accountID];
                 [contactObj removeShareInteractions];
                 [[MLNotificationQueue currentQueue] postNotificationName:kMonalContactRemoved object:account userInfo:@{@"contact": contactObj}];
             }
@@ -343,37 +343,37 @@ $$
         {
             if([[contact objectForKey:@"subscription"] isEqualToString:kSubFrom]) //already subscribed
             {
-                [[DataLayer sharedInstance] deleteContactRequest:contactObj];
+                [[MLDataLayer sharedInstance] deleteContactRequest:contactObj];
             }
             else if([[contact objectForKey:@"subscription"] isEqualToString:kSubBoth])
             {
                 // We and the contact are interested
-                [[DataLayer sharedInstance] deleteContactRequest:contactObj];
+                [[MLDataLayer sharedInstance] deleteContactRequest:contactObj];
             }
             
             if(contactObj.isMuc)
             {
                 DDLogWarn(@"Removing muc '%@' from contactlist, got 'normal' roster entry!", contact[@"jid"]);
-                [[DataLayer sharedInstance] removeBuddy:contact[@"jid"] forAccount:account.accountID];
+                [[MLDataLayer sharedInstance] removeBuddy:contact[@"jid"] forAccount:account.accountID];
                 [contactObj removeShareInteractions];
                 [[MLNotificationQueue currentQueue] postNotificationName:kMonalContactRemoved object:account userInfo:@{@"contact": contactObj}];
                 contactObj = [MLContact createContactFromJid:contact[@"jid"] andAccountID:account.accountID];
             }
             
             DDLogVerbose(@"Adding contact %@ (%@) to database", contact[@"jid"], [contact objectForKey:@"name"]);
-            [[DataLayer sharedInstance] addContact:contact[@"jid"]
+            [[MLDataLayer sharedInstance] addContact:contact[@"jid"]
                                         forAccount:account.accountID
                                           nickname:[contact objectForKey:@"name"] ? [contact objectForKey:@"name"] : @""];
             
             DDLogVerbose(@"Setting subscription status '%@' (ask=%@) for contact %@", contact[@"subscription"], contact[@"ask"], contact[@"jid"]);
-            [[DataLayer sharedInstance] setSubscription:[contact objectForKey:@"subscription"]
+            [[MLDataLayer sharedInstance] setSubscription:[contact objectForKey:@"subscription"]
                                                  andAsk:[contact objectForKey:@"ask"]
                                              forContact:contact[@"jid"]
                                              andAccount:account.accountID];
             
             NSSet* groups = [NSSet setWithArray:[contactNode find:@"group#"]];
             DDLogVerbose(@"Setting roster groups for contact %@: %@", contact[@"jid"], groups);
-            [[DataLayer sharedInstance] setGroups:groups
+            [[MLDataLayer sharedInstance] setGroups:groups
                                        forContact:contact[@"jid"]
                                         inAccount:account.accountID];
 
@@ -401,7 +401,7 @@ $$
     }
     
     if([iqNode check:@"{jabber:iq:roster}query@ver"])
-        [[DataLayer sharedInstance] setRosterVersion:[iqNode findFirst:@"{jabber:iq:roster}query@ver"] forAccount:account.accountID];
+        [[MLDataLayer sharedInstance] setRosterVersion:[iqNode findFirst:@"{jabber:iq:roster}query@ver"] forAccount:account.accountID];
     
     return YES;
 }
@@ -482,7 +482,7 @@ $$class_handler(handleAccountDiscoInfo, $$ID(xmpp*, account), $$ID(XMPPIQ*, iqNo
         //this will do a catchup of everything we might have missed since our last connection
         //we possibly receive sent messages, too (this will update the stanzaid in database and gets deduplicate by messageid,
         //which is guaranteed to be unique (because monal uses uuids for outgoing messages)
-        NSString* lastStanzaId = [[DataLayer sharedInstance] lastStanzaIdForAccount:account.accountID];
+        NSString* lastStanzaId = [[MLDataLayer sharedInstance] lastStanzaIdForAccount:account.accountID];
         [account delayIncomingMessageStanzasForArchiveJid:account.connectionProperties.identity.jid];
         XMPPIQ* mamQuery = [[XMPPIQ alloc] initWithType:kiqSetType];
         if(lastStanzaId)
@@ -644,7 +644,7 @@ $$class_handler(handleEntityCapsDisco, $$ID(xmpp*, account), $$ID(XMPPIQ*, iqNod
     NSSet* features = [NSSet setWithArray:[iqNode find:@"{http://jabber.org/protocol/disco#info}query/feature@var"]];
     NSArray* forms = [iqNode find:@"{http://jabber.org/protocol/disco#info}query/{jabber:x:data}x"];
     NSString* ver = [HelperTools getEntityCapsHashForIdentities:identities andFeatures:features andForms:forms];
-    [[DataLayer sharedInstance] setCaps:features forVer:ver onAccountID:account.accountID];
+    [[MLDataLayer sharedInstance] setCaps:features forVer:ver onAccountID:account.accountID];
     [account markCapsQueryCompleteFor:ver];
     
     //send out kMonalContactRefresh notification
@@ -686,7 +686,7 @@ $$class_handler(handlePushEnabled, $$ID(xmpp*, account), $$ID(XMPPIQ*, iqNode), 
         return;
     }
     // save used push server to db
-    [[DataLayer sharedInstance] updateUsedPushServer:selectedPushServer forAccount:account.accountID];
+    [[MLDataLayer sharedInstance] updateUsedPushServer:selectedPushServer forAccount:account.accountID];
     DDLogInfo(@"Push is enabled now");
     account.connectionProperties.pushEnabled = YES;
 $$
@@ -745,10 +745,10 @@ $$class_handler(handleVersionResponse, $$ID(xmpp*, account), $$ID(XMPPIQ*, iqNod
     }
     
     DDLogVerbose(@"Updating software version info for %@", iqNode.from);
-    NSDate* lastInteraction = [[DataLayer sharedInstance] lastInteractionOfJid:iqNode.fromUser andResource:iqNode.fromResource forAccountID:account.accountID];
+    NSDate* lastInteraction = [[MLDataLayer sharedInstance] lastInteractionOfJid:iqNode.fromUser andResource:iqNode.fromResource forAccountID:account.accountID];
     MLContactSoftwareVersionInfo* newSoftwareVersionInfo = [[MLContactSoftwareVersionInfo alloc] initWithJid:iqNode.fromUser andRessource:iqNode.fromResource andAppName:iqAppName andAppVersion:iqAppVersion andPlatformOS:iqPlatformOS andLastInteraction:lastInteraction];
 
-    [[DataLayer sharedInstance] setSoftwareVersionInfoForContact:iqNode.fromUser
+    [[MLDataLayer sharedInstance] setSoftwareVersionInfoForContact:iqNode.fromUser
                                                         resource:iqNode.fromResource
                                                         andAccount:account.accountID
                                                 withSoftwareInfo:newSoftwareVersionInfo];
@@ -759,7 +759,7 @@ $$class_handler(handleVersionResponse, $$ID(xmpp*, account), $$ID(XMPPIQ*, iqNod
 $$
 
 $$class_handler(handleModerationResponse, $$ID(xmpp*, account), $$ID(XMPPIQ*, iqNode), $$ID(MLMessage*, msg))
-    [msg updateWithMessage:[[DataLayer sharedInstance] messageForHistoryID:msg.messageDBId]];       //make sure our msg is up to date
+    [msg updateWithMessage:[[MLDataLayer sharedInstance] messageForHistoryID:msg.messageDBId]];       //make sure our msg is up to date
     if([iqNode check:@"/<type=error>"])
     {
         DDLogError(@"Moderating message %@ returned an error: %@", msg, [iqNode findFirst:@"error"]);
@@ -768,7 +768,7 @@ $$class_handler(handleModerationResponse, $$ID(xmpp*, account), $$ID(XMPPIQ*, iq
     }
     
     DDLogInfo(@"Successfully moderated message in muc: %@", msg);
-    [[DataLayer sharedInstance] retractMessageHistory:msg.messageDBId];
+    [[MLDataLayer sharedInstance] retractMessageHistory:msg.messageDBId];
     
     //update ui
     DDLogInfo(@"Sending out kMonalDeletedMessageNotice notification for historyId %@", msg.messageDBId);
@@ -800,7 +800,7 @@ $$class_handler(handleQuicksyPhoneBook, $$ID(xmpp*, account), $$ID(XMPPIQ*, iqNo
         for(NSString* jid in [entry find:@"jid#"])
         {
             DDLogDebug(@"Adding '%@' with nick '%@' to local roster...", jid, nick);
-            [[DataLayer sharedInstance] addContact:jid forAccount:account.accountID nickname:nick];
+            [[MLDataLayer sharedInstance] addContact:jid forAccount:account.accountID nickname:nick];
 #ifndef DISABLE_OMEMO
             // Request omemo devicelist
             [account.omemo subscribeAndFetchDevicelistIfNoSessionExistsForJid:jid];

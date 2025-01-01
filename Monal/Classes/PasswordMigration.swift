@@ -103,7 +103,7 @@ struct PasswordMigration: View {
                             dic["needs_password_migration"] = NSNumber(value:false)
                             if let password = dic["password"] as? String, password.count > 0 {
                                 DDLogDebug("Updating account in DB: enabled=\(String(describing:dic["enabled"])), needs_password_migration=\(String(describing:dic["needs_password_migration"])), password.count=\(password.count)")
-                                DataLayer.sharedInstance().updateAccoun(with:dic)
+                                MLDataLayer.sharedInstance().updateAccoun(with:dic)
                                 MLXMPPManager.sharedInstance().updatePassword(password, forAccount:dic["account_id"] as! NSNumber)
                                 if((self.needingMigration[id]?["enabled"] as! NSNumber).boolValue) {
                                     DDLogDebug("Connecting now enabled account...")
@@ -113,7 +113,7 @@ struct PasswordMigration: View {
                                 //make sure to never enable accounts without password
                                 dic["enabled"] = NSNumber(value:false)
                                 DDLogDebug("Updating account in DB: enabled=\(String(describing:dic["enabled"])), needs_password_migration=\(String(describing:dic["needs_password_migration"])), password.count=0")
-                                DataLayer.sharedInstance().updateAccoun(with:dic)
+                                MLDataLayer.sharedInstance().updateAccoun(with:dic)
                             }
                         }
                         NotificationCenter.default.post(name:Notification.Name("kMonalRefresh"), object:nil);

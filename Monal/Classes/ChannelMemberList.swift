@@ -22,9 +22,9 @@ struct ChannelMemberList: View {
     }
     
     func updateParticipantList() {
-        ownAffiliation = DataLayer.sharedInstance().getOwnAffiliation(inGroupOrChannel:channel.obj) ?? kMucAffiliationNone
+        ownAffiliation = MLDataLayer.sharedInstance().getOwnAffiliation(inGroupOrChannel:channel.obj) ?? kMucAffiliationNone
         participants.removeAll(keepingCapacity:true)
-        for memberInfo in Array(DataLayer.sharedInstance().getMembersAndParticipants(ofMuc:channel.contactJid, forAccountID:account.accountID)) {
+        for memberInfo in Array(MLDataLayer.sharedInstance().getMembersAndParticipants(ofMuc:channel.contactJid, forAccountID:account.accountID)) {
             //ignore ourselves
             if let jid = memberInfo["participant_jid"] as? String ?? memberInfo["member_jid"] as? String {
                 if jid == account.connectionProperties.identity.jid {

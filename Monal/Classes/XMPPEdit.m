@@ -82,7 +82,7 @@ enum DummySettingsRows {
 @end
 
 @interface XMPPEdit()
-@property (nonatomic, strong) DataLayer* db;
+@property (nonatomic, strong) MLDataLayer* db;
 @property (nonatomic, strong) NSMutableDictionary* sectionDictionary;
 
 @property (nonatomic, assign) BOOL editMode;
@@ -140,7 +140,7 @@ enum DummySettingsRows {
                                                bundle:[NSBundle mainBundle]]
          forCellReuseIdentifier:@"ButtonCell"];
     
-    _db = [DataLayer sharedInstance];
+    _db = [MLDataLayer sharedInstance];
     
     if(self.accountID.intValue != -1)
         self.editMode = YES;
@@ -353,11 +353,11 @@ enum DummySettingsRows {
         }
         else
         {
-            BOOL accountExists = [[DataLayer sharedInstance] doesAccountExistUser:user andDomain:domain];
+            BOOL accountExists = [[MLDataLayer sharedInstance] doesAccountExistUser:user andDomain:domain];
             if(!accountExists)
             {
                 DDLogVerbose(@"Creating account: %@", dic);
-                NSNumber* accountID = [[DataLayer sharedInstance] addAccountWithDictionary:dic];
+                NSNumber* accountID = [[MLDataLayer sharedInstance] addAccountWithDictionary:dic];
                 if(accountID != nil)
                 {
                     self.accountID = accountID;
@@ -404,7 +404,7 @@ enum DummySettingsRows {
             [[MLXMPPManager sharedInstance] disconnectAccount:self.accountID withExplicitLogout:NO];
         
         DDLogVerbose(@"Now updating DB with account dict...");
-        [[DataLayer sharedInstance] updateAccounWithDictionary:dic];
+        [[MLDataLayer sharedInstance] updateAccounWithDictionary:dic];
         if(self.password.length)
         {
             DDLogVerbose(@"Now setting password for account %@ in SAMKeychain...", self.accountID);

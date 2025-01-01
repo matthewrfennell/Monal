@@ -41,8 +41,8 @@ struct ContactDetails: View {
 
     private func updateRoleAndAffiliation() {
         if contact.isMuc {
-            self.ownRole = DataLayer.sharedInstance().getOwnRole(inGroupOrChannel: contact.obj) ?? kMucRoleNone
-            self.ownAffiliation = DataLayer.sharedInstance().getOwnAffiliation(inGroupOrChannel:contact.obj) ?? kMucAffiliationNone
+            self.ownRole = MLDataLayer.sharedInstance().getOwnRole(inGroupOrChannel: contact.obj) ?? kMucRoleNone
+            self.ownAffiliation = MLDataLayer.sharedInstance().getOwnAffiliation(inGroupOrChannel:contact.obj) ?? kMucAffiliationNone
         } else {
             self.ownRole = kMucRoleParticipant
             self.ownAffiliation = kMucAffiliationNone

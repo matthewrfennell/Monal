@@ -11,7 +11,7 @@
 #import "MLConstants.h"
 #import "HelperTools.h"
 #import "MLNotificationManager.h"
-#import "DataLayer.h"
+#import "MLDataLayer.h"
 #import "MLImageManager.h"
 #import "ActiveChatsViewController.h"
 #import "IPC.h"
@@ -355,7 +355,7 @@ $$
 {
     DDLogInfo(@"Updating unread called");
     //make sure unread badge matches application badge
-    NSNumber* unreadMsgCnt = [[DataLayer sharedInstance] countUnreadMessages];
+    NSNumber* unreadMsgCnt = [[MLDataLayer sharedInstance] countUnreadMessages];
     [HelperTools dispatchAsync:YES reentrantOnQueue:dispatch_get_main_queue() withBlock:^{
         NSInteger unread = 0;
         if(unreadMsgCnt != nil)
@@ -490,7 +490,7 @@ $$
                     //this is only needed for better UI (settings --> noifications should reflect the proper state)
                     //both invalidations are needed because we don't know the timing of this notification granting handler
                     DDLogInfo(@"Invalidating all account states...");
-                    [[DataLayer sharedInstance] invalidateAllAccountStates];        //invalidate states for account objects not yet created
+                    [[MLDataLayer sharedInstance] invalidateAllAccountStates];        //invalidate states for account objects not yet created
                     [[MLXMPPManager sharedInstance] reconnectAll];                  //invalidate for account objects already created
                 }
                 
@@ -511,7 +511,7 @@ $$
                     //this is only needed for better UI (settings --> noifications should reflect the proper state)
                     //both invalidations are needed because we don't know the timing of this notification granting handler
                     DDLogInfo(@"Invalidating all account states...");
-                    [[DataLayer sharedInstance] invalidateAllAccountStates];        //invalidate states for account objects not yet created
+                    [[MLDataLayer sharedInstance] invalidateAllAccountStates];        //invalidate states for account objects not yet created
                     [[MLXMPPManager sharedInstance] reconnectAll];                  //invalidate for account objects already created
                 }
             }
@@ -595,7 +595,7 @@ $$
         {
             INPersonHandle* contactHandle = intent.contacts.firstObject.personHandle;
             DDLogInfo(@"INStartCallIntent with contact: %@", contactHandle.value);
-            NSArray<MLContact*>* contacts = [[DataLayer sharedInstance] contactListWithJid:contactHandle.value];
+            NSArray<MLContact*>* contacts = [[MLDataLayer sharedInstance] contactListWithJid:contactHandle.value];
             if([contacts count] == 0)
             {
                 [self.activeChats showCallContactNotFoundAlert:contactHandle.value];
@@ -914,7 +914,7 @@ $$
         
         
         //make sure we have an active buddy for this chat
-        [[DataLayer sharedInstance] addActiveBuddies:fromContact.contactJid forAccount:fromContact.accountID];
+        [[MLDataLayer sharedInstance] addActiveBuddies:fromContact.contactJid forAccount:fromContact.accountID];
         
         //handle message actions
         if([response.actionIdentifier isEqualToString:@"REPLY_ACTION"])
@@ -928,7 +928,7 @@ $$
             }
             
             //mark messages as read because we are replying
-            NSArray* unread = [[DataLayer sharedInstance] markMessagesAsReadForBuddy:fromContact.contactJid andAccount:fromContact.accountID tillStanzaId:messageId wasOutgoing:NO];
+            NSArray* unread = [[MLDataLayer sharedInstance] markMessagesAsReadForBuddy:fromContact.contactJid andAccount:fromContact.accountID tillStanzaId:messageId wasOutgoing:NO];
             DDLogDebug(@"Marked as read: %@", unread);
             
             //remove notifications of all read messages (this will cause the MLNotificationManager to update the app badge, too)
@@ -940,7 +940,7 @@ $$
                 @"contact": fromContact
             }];
             
-            BOOL encrypted = [[DataLayer sharedInstance] shouldEncryptForJid:fromContact.contactJid andAccountID:fromContact.accountID];
+            BOOL encrypted = [[MLDataLayer sharedInstance] shouldEncryptForJid:fromContact.contactJid andAccountID:fromContact.accountID];
             [[MLXMPPManager sharedInstance] sendMessageAndAddToHistory:textResponse.userText havingType:kMessageTypeText toContact:fromContact isEncrypted:encrypted uploadInfo:nil withCompletionHandler:^(BOOL successSendObject, NSString* messageIdSentObject) {
                 DDLogInfo(@"REPLY_ACTION success=%@, messageIdSentObject=%@", bool2str(successSendObject), messageIdSentObject);
             }];
@@ -948,7 +948,7 @@ $$
         else if([response.actionIdentifier isEqualToString:@"MARK_AS_READ_ACTION"])
         {
             DDLogInfo(@"MARK_AS_READ_ACTION triggered...");
-            NSArray* unread = [[DataLayer sharedInstance] markMessagesAsReadForBuddy:fromContact.contactJid andAccount:fromContact.accountID tillStanzaId:messageId wasOutgoing:NO];
+            NSArray* unread = [[MLDataLayer sharedInstance] markMessagesAsReadForBuddy:fromContact.contactJid andAccount:fromContact.accountID tillStanzaId:messageId wasOutgoing:NO];
             DDLogDebug(@"Marked as read: %@", unread);
             
             //publish MDS display marker and optionally send displayed marker for last unread message (XEP-0333)
@@ -1936,7 +1936,7 @@ $$
     
     [(ActiveChatsViewController*)self.activeChats dismissCompleteViewChainWithAnimation:YES andCompletion:^{
         //open the destination chat only once
-        for(NSDictionary* payload in [[DataLayer sharedInstance] getShareSheetPayload])
+        for(NSDictionary* payload in [[MLDataLayer sharedInstance] getShareSheetPayload])
         {
             DDLogInfo(@"Sending outbox entry: %@", payload);
             xmpp* account = [[MLXMPPManager sharedInstance] getEnabledAccountForID:payload[@"account_id"]];
@@ -1946,13 +1946,13 @@ $$
                 [messageAlert addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"Close", @"") style:UIAlertActionStyleCancel handler:^(UIAlertAction* action __unused) {
                 }]];
                 [self.activeChats presentViewController:messageAlert animated:YES completion:nil];
-                [[DataLayer sharedInstance] deleteShareSheetPayloadWithId:payload[@"id"]];
+                [[MLDataLayer sharedInstance] deleteShareSheetPayloadWithId:payload[@"id"]];
                 continue;
             }
             MLContact* contact = [MLContact createContactFromJid:payload[@"recipient"] andAccountID:account.accountID];
             
             monal_id_block_t cleanup = ^(NSDictionary* payload) {
-                [[DataLayer sharedInstance] deleteShareSheetPayloadWithId:payload[@"id"]];
+                [[MLDataLayer sharedInstance] deleteShareSheetPayloadWithId:payload[@"id"]];
                 [[MLNotificationQueue currentQueue] postNotificationName:kMonalRefresh object:nil userInfo:nil];
                 if(self.activeChats.currentChatView != nil)
                 {
@@ -1964,7 +1964,7 @@ $$
             };
             
             monal_id_block_t sendItem = ^(id dummy __unused){
-                BOOL encrypted = [[DataLayer sharedInstance] shouldEncryptForJid:contact.contactJid andAccountID:contact.accountID];
+                BOOL encrypted = [[MLDataLayer sharedInstance] shouldEncryptForJid:contact.contactJid andAccountID:contact.accountID];
                 if([payload[@"type"] isEqualToString:@"text"])
                 {
                     [[MLXMPPManager sharedInstance] sendMessageAndAddToHistory:payload[@"data"] havingType:kMessageTypeText toContact:contact isEncrypted:encrypted uploadInfo:nil withCompletionHandler:^(BOOL successSendObject, NSString* messageIdSentObject) {
@@ -2018,7 +2018,7 @@ $$
             };
             
             DDLogVerbose(@"Trying to open chat of outbox receiver: %@", contact);
-            [[DataLayer sharedInstance] addActiveBuddies:contact.contactJid forAccount:contact.accountID];
+            [[MLDataLayer sharedInstance] addActiveBuddies:contact.contactJid forAccount:contact.accountID];
             //don't use [self openChatOfContact:withCompletion:] because it's asynchronous and can only handle one contact at a time (e.g. until the asynchronous execution finished)
             //we can invoke the activeChats interface directly instead, because we already did the necessary preparations ourselves
             [(ActiveChatsViewController*)self.activeChats presentChatWithContact:contact andCompletion:sendItem];
