@@ -25,6 +25,6 @@ public class MLPromise : NSObject {
     public static func removeStalePromises() {}
 
     private func serialize() {
-//        DataLayer.sharedInstance().add(self)
+        DataLayer.sharedInstance().add(self)
     }
 }
