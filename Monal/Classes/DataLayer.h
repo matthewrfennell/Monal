@@ -11,8 +11,9 @@
 #import "XMPPPresence.h"
 #import "MLMessage.h"
 #import "MLContact.h"
-#import "MLPromise.h"
 #import "MLContactSoftwareVersionInfo.h"
+
+@class MLPromise;
 
 NS_ASSUME_NONNULL_BEGIN
 

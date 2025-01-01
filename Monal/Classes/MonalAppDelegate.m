@@ -25,6 +25,7 @@
 #import "MLVoIPProcessor.h"
 #import "MLUDPLogger.h"
 #import "MLCrashReporter.h"
+#import <monalxmpp/monalxmpp-Swift.h>
 
 @import NotificationBannerSwift;
 @import UserNotifications;
@@ -395,7 +396,7 @@ $$
     });
     
     // Remove stale promises left in the DB that weren't consumed last time we ran the app
-    [MLPromise removeStalePromises];
+    [MLPromise consumeStalePromises];
 
     //only proceed with launching if the NotificationServiceExtension is *not* running
     if([MLProcessLock checkRemoteRunning:@"NotificationServiceExtension"])

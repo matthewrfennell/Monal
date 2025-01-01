@@ -87,8 +87,7 @@
 		340F0CA42D2425D9006224D0 /* MLXMPPIdentity.h in Headers */ = {isa = PBXBuildFile; fileRef = 26611010238F08980030A4EE /* MLXMPPIdentity.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		340F0CA52D2425E1006224D0 /* MLLogFileManager.h in Headers */ = {isa = PBXBuildFile; fileRef = C15D504824C727CC002F75BB /* MLLogFileManager.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		340F0CA62D24267B006224D0 /* MLXMLNode.h in Headers */ = {isa = PBXBuildFile; fileRef = 260C51D2177F44AD0039634B /* MLXMLNode.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		341F44662CAF427500AA6C7D /* MLPromise.h in Headers */ = {isa = PBXBuildFile; fileRef = 341F44642CAF427500AA6C7D /* MLPromise.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		341F44672CAF427500AA6C7D /* MLPromise.m in Sources */ = {isa = PBXBuildFile; fileRef = 341F44652CAF427500AA6C7D /* MLPromise.m */; };
+		340F0CAA2D2429E1006224D0 /* MLPromise.swift in Sources */ = {isa = PBXBuildFile; fileRef = 340F0CA92D2429E1006224D0 /* MLPromise.swift */; };
 		3424B4E72D232BE2009F6503 /* MLContact.h in Headers */ = {isa = PBXBuildFile; fileRef = 26611029238F17CA0030A4EE /* MLContact.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3424B4E82D232BE7009F6503 /* DataLayer.h in Headers */ = {isa = PBXBuildFile; fileRef = 2601D9A80FBF255D004DB939 /* DataLayer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3424B4E92D232BEB009F6503 /* xmpp.h in Headers */ = {isa = PBXBuildFile; fileRef = 260C51CF177F08F50039634B /* xmpp.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -521,8 +520,7 @@
 		2C59BAF969550DFAC27E5F2B /* Pods_MonalXMPPUnitTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MonalXMPPUnitTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		2E5021A8D40FCC591D952104 /* Pods-NotificaionService.alpha-ios.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificaionService.alpha-ios.xcconfig"; path = "Target Support Files/Pods-NotificaionService/Pods-NotificaionService.alpha-ios.xcconfig"; sourceTree = "<group>"; };
 		32CA4F630368D1EE00C91783 /* MonalSourceCodePrefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MonalSourceCodePrefix.pch; sourceTree = "<group>"; };
-		341F44642CAF427500AA6C7D /* MLPromise.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MLPromise.h; sourceTree = "<group>"; };
-		341F44652CAF427500AA6C7D /* MLPromise.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MLPromise.m; sourceTree = "<group>"; };
+		340F0CA92D2429E1006224D0 /* MLPromise.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MLPromise.swift; sourceTree = "<group>"; };
 		34BC08112C5E9BE30099FB85 /* ContentUnavailableShimView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentUnavailableShimView.swift; sourceTree = "<group>"; };
 		34E58B4A2C68E7BC009A1634 /* ContactsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactsView.swift; sourceTree = "<group>"; };
 		3872091F251EDE07001837EB /* MLXEPSlashMeHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLXEPSlashMeHandler.h; sourceTree = "<group>"; };
@@ -889,8 +887,7 @@
 				262D9EAB17924532009292B4 /* MLConstants.h */,
 				26EC411117BDE39E0031304D /* MLImageManager.h */,
 				26EC411217BDE39E0031304D /* MLImageManager.m */,
-				341F44642CAF427500AA6C7D /* MLPromise.h */,
-				341F44652CAF427500AA6C7D /* MLPromise.m */,
+				340F0CA92D2429E1006224D0 /* MLPromise.swift */,
 				263AFDFA209B3B35007F9CEE /* MLSignalStore.h */,
 				263AFDFB209B3B35007F9CEE /* MLSignalStore.m */,
 				C16D18332792A4AF00F869A0 /* DataLayerMigrations.h */,
@@ -1528,7 +1525,6 @@
 				340F0CA32D2425D2006224D0 /* MLXMPPServer.h in Headers */,
 				54179CC3251CBB2B008F398E /* XMPPStanza.h in Headers */,
 				C1F5C7A92775DA000001F295 /* MLContactSoftwareVersionInfo.h in Headers */,
-				341F44662CAF427500AA6C7D /* MLPromise.h in Headers */,
 				340F0CA22D2425C4006224D0 /* XMPPPresence.h in Headers */,
 				84FC37572897523500634E3E /* metamacros.h in Headers */,
 				340F0CA02D2425A4006224D0 /* MLMessage.h in Headers */,
@@ -2219,7 +2215,6 @@
 			files = (
 				5427C94E276A6BE1003217D5 /* UIColor+Extension.m in Sources */,
 				540E13A524CF6A8C0038FDA0 /* MLNotificationManager.m in Sources */,
-				341F44672CAF427500AA6C7D /* MLPromise.m in Sources */,
 				54D2308424CB10EE00638D65 /* MLLogFileManager.m in Sources */,
 				26CC57B323A086CC00ABB92A /* XMPPIQ.m in Sources */,
 				C1613B5B2520723D0062C0C2 /* MLBasePaser.m in Sources */,
@@ -2245,6 +2240,7 @@
 				84FC37552897521500634E3E /* snprintf.m in Sources */,
 				26CC57DA23A08DD800ABB92A /* MLXMPPManager.m in Sources */,
 				26CC57B823A0876300ABB92A /* MLHTTPRequest.m in Sources */,
+				340F0CAA2D2429E1006224D0 /* MLPromise.swift in Sources */,
 				26CC57A223A086AA00ABB92A /* xmpp.m in Sources */,
 				26CC57B423A086CC00ABB92A /* XMPPPresence.m in Sources */,
 				541E4CC0254AA0E700FD7B28 /* MLHandler.m in Sources */,

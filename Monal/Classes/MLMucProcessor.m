@@ -22,6 +22,7 @@
 #import "MLPubSubProcessor.h"
 #import "MLOMEMO.h"
 #import "MLImageManager.h"
+#import <monalxmpp/monalxmpp-Swift.h>
 
 #define CURRENT_MUC_STATE_VERSION @9
 

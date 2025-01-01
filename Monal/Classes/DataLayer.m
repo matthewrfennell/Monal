@@ -19,6 +19,7 @@
 #import "DataLayerMigrations.h"
 #import "MLContactSoftwareVersionInfo.h"
 #import "MLXMPPManager.h"
+#import <monalxmpp/monalxmpp-Swift.h>
 
 @interface DataLayer()
 @property (readonly, strong) MLSQLite* db;
@@ -2548,7 +2549,7 @@ static NSDateFormatter* dbFormatter;
         NSData* data = [NSKeyedArchiver archivedDataWithRootObject:promise requiringSecureCoding:YES error:&error];
         if(error)
             @throw [NSException exceptionWithName:@"NSError" reason:[NSString stringWithFormat:@"%@", error] userInfo:@{@"error": error}];
-        [self.db executeNonQuery:query andArguments:@[[promise.uuid UUIDString], data, data]];
+        [self.db executeNonQuery:query andArguments:@[promise.uuid, data, data]];
     }];
 }
 
@@ -2557,7 +2558,7 @@ static NSDateFormatter* dbFormatter;
     DDLogDebug(@"Removing promise %@ with uuid %@ from DB", promise, promise.uuid);
     [self.db voidWriteTransaction:^{
         NSString* query = @"DELETE FROM promises WHERE uuid = ?;";
-        [self.db executeNonQuery:query andArguments:@[[promise.uuid UUIDString]]];
+        [self.db executeNonQuery:query andArguments:@[promise.uuid]];
     }];
 }
 
@@ -2575,7 +2576,7 @@ static NSDateFormatter* dbFormatter;
     DDLogDebug(@"Getting promise %@ with uuid %@ from DB", promise, promise.uuid);
     return [self.db idReadTransaction:^{
         NSString* query = @"SELECT promise FROM promises WHERE uuid = ?;";
-        NSArray* results = [self.db executeScalarReader:query andArguments:@[[promise.uuid UUIDString]]];
+        NSArray* results = [self.db executeScalarReader:query andArguments:@[promise.uuid]];
         MLAssert([results count] == 1, @"Tried to retrieve a promise that did not exist in the DB");
         NSData* data = results[0];
         MLPromise* retrieved = [HelperTools unserializeData:data];
