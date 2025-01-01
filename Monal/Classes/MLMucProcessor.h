@@ -6,13 +6,17 @@
 //  Copyright © 2020 Monal.im. All rights reserved.
 //
 
-#import "MLConstants.h"
+#import <Foundation/Foundation.h>
+
+typedef void (^monal_id_block_t)(id _Nonnull) NS_SWIFT_UNAVAILABLE("To be redefined in swift.");
 
 NS_ASSUME_NONNULL_BEGIN
 
 @class XMPPPresence;
 @class XMPPMessage;
 @class xmpp;
+@class AnyPromise;
+@class UIImage;
 
 @interface MLMucProcessor : NSObject
 
