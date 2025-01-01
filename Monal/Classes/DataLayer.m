@@ -19,6 +19,7 @@
 #import "DataLayerMigrations.h"
 #import "MLContactSoftwareVersionInfo.h"
 #import "MLXMPPManager.h"
+#import <monalxmpp/monalxmpp-Swift.h>
 
 @interface DataLayer()
 @property (readonly, strong) MLSQLite* db;

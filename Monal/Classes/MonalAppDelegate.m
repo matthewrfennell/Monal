@@ -41,6 +41,7 @@
 #import "XMPPPresence.h"
 #import "XMPPMessage.h"
 #import "chatViewController.h"
+#import <monalxmpp/monalxmpp-Swift.h>
 
 @import Intents;
 
