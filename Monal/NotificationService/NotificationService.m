@@ -388,7 +388,7 @@
     DDLogVerbose(@"updating app badge via updateUnread");
     UNMutableNotificationContent* content = [UNMutableNotificationContent new];
     
-    NSNumber* unreadMsgCnt = [[DataLayer sharedInstance] countUnreadMessages];
+    NSNumber* unreadMsgCnt = [[MLDataLayer sharedInstance] countUnreadMessages];
     NSInteger unread = 0;
     if(unreadMsgCnt != nil)
         unread = [unreadMsgCnt integerValue];

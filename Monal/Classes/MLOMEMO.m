@@ -21,7 +21,7 @@
 #import "XMPPIQ.h"
 #import "xmpp.h"
 #import "MLPubSub.h"
-#import "DataLayer.h"
+#import "MLDataLayer.h"
 #import "MLNotificationQueue.h"
 
 NS_ASSUME_NONNULL_BEGIN
@@ -438,13 +438,13 @@ $$
 
 -(void) postOMEMOMessageForUser:(NSString*) jid withMessage:(NSString*) omemoMessage
 {
-    if(![[DataLayer sharedInstance] isContactInList:jid forAccount:self.account.accountID]) {
-        [[DataLayer sharedInstance] addContact:jid forAccount:self.account.accountID nickname:nil];
+    if(![[MLDataLayer sharedInstance] isContactInList:jid forAccount:self.account.accountID]) {
+        [[MLDataLayer sharedInstance] addContact:jid forAccount:self.account.accountID nickname:nil];
     }
     NSString* newMessageID = [[NSUUID UUID] UUIDString];
-    NSNumber* historyId = [[DataLayer sharedInstance] addMessageHistoryTo:jid forAccount:self.account.accountID withMessage:omemoMessage actuallyFrom:jid withId:newMessageID encrypted:NO messageType:kMessageTypeStatus mimeType:nil size:nil];
+    NSNumber* historyId = [[MLDataLayer sharedInstance] addMessageHistoryTo:jid forAccount:self.account.accountID withMessage:omemoMessage actuallyFrom:jid withId:newMessageID encrypted:NO messageType:kMessageTypeStatus mimeType:nil size:nil];
 
-    MLMessage* message = [[DataLayer sharedInstance] messageForHistoryID:historyId];
+    MLMessage* message = [[MLDataLayer sharedInstance] messageForHistoryID:historyId];
     MLContact* contact = [MLContact createContactFromJid:jid andAccountID:self.account.accountID];
     [[MLNotificationQueue currentQueue] postNotificationName:kMonalNewMessageNotice object:self.account userInfo:@{
         @"message": message,
@@ -1030,8 +1030,8 @@ $$
     }
     
     NSMutableSet<NSString*>* recipients = [NSMutableSet new];
-    if([[DataLayer sharedInstance] isBuddyMuc:toContact forAccount:self.account.accountID])
-        for(NSDictionary* participant in [[DataLayer sharedInstance] getMembersAndParticipantsOfMuc:toContact forAccountID:self.account.accountID])
+    if([[MLDataLayer sharedInstance] isBuddyMuc:toContact forAccount:self.account.accountID])
+        for(NSDictionary* participant in [[MLDataLayer sharedInstance] getMembersAndParticipantsOfMuc:toContact forAccountID:self.account.accountID])
         {
             if(participant[@"participant_jid"])
                 [recipients addObject:participant[@"participant_jid"]];

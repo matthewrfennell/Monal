@@ -9,7 +9,7 @@
 #import "MLConstants.h"
 #import "MLSignalStore.h"
 #import "SignalProtocolObjC.h"
-#import "DataLayer.h"
+#import "MLDataLayer.h"
 #import "MLSQLite.h"
 #import "HelperTools.h"
 
@@ -25,10 +25,10 @@
 
 +(void) initialize
 {
-    //TODO: WE USE THE SAME DATABASE FILE AS THE DataLayer --> this should probably be migrated into the datalayer or use its own sqlite database
+    //TODO: WE USE THE SAME DATABASE FILE AS THE MLDataLayer --> this should probably be migrated into the MLDataLayer or use its own sqlite database
     
-    //make sure the datalayer has migrated the database file to the app group location first
-    [DataLayer initialize];
+    //make sure the MLDataLayer has migrated the database file to the app group location first
+    [MLDataLayer initialize];
 }
 
 //this is the getter of our readonly "sqliteDatabase" property always returning the thread-local instance of the MLSQLite class

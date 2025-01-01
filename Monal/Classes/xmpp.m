@@ -21,7 +21,7 @@
 #import "MLStream.h"
 #import "MLPipe.h"
 #import "MLProcessLock.h"
-#import "DataLayer.h"
+#import "MLDataLayer.h"
 #import "HelperTools.h"
 #import "MLXMPPManager.h"
 #import "MLNotificationQueue.h"
@@ -917,7 +917,7 @@ NSString* const kStanza = @"stanza";
         }
         
         //make sure we are still enabled ("-1" is used for the account registration process and never saved to db)
-        if(self.accountID.intValue != -1 && ![[DataLayer sharedInstance] isAccountEnabled:self.accountID])
+        if(self.accountID.intValue != -1 && ![[MLDataLayer sharedInstance] isAccountEnabled:self.accountID])
         {
             DDLogError(@"Account '%@' not enabled anymore, ignoring login", self.accountID);
             return;
@@ -1025,7 +1025,7 @@ NSString* const kStanza = @"stanza";
             [self persistState];
         }
         
-        [[DataLayer sharedInstance] resetContactsForAccount:self.accountID];
+        [[MLDataLayer sharedInstance] resetContactsForAccount:self.accountID];
         
         //trigger view updates to make sure enabled/disabled account state propagates to all ui elements
         [[MLNotificationQueue currentQueue] postNotificationName:kMonalRefresh object:nil userInfo:nil];
@@ -1155,7 +1155,7 @@ NSString* const kStanza = @"stanza";
                 [self persistState];
             }
             
-            [[DataLayer sharedInstance] resetContactsForAccount:self.accountID];
+            [[MLDataLayer sharedInstance] resetContactsForAccount:self.accountID];
             
             //trigger view updates to make sure enabled/disabled account state propagates to all ui elements
             [[MLNotificationQueue currentQueue] postNotificationName:kMonalRefresh object:nil userInfo:nil];
@@ -1402,7 +1402,7 @@ NSString* const kStanza = @"stanza";
                         //add whole processing of incoming stanzas to one big transaction
                         //this will make it impossible to leave inconsistent database entries on app crashes or iphone crashes/reboots
                         DDLogVerbose(@"Starting transaction for: %@", loggedStanza);
-                        [[DataLayer sharedInstance] createTransaction:^{
+                        [[MLDataLayer sharedInstance] createTransaction:^{
                             DDLogVerbose(@"Started transaction for: %@", loggedStanza);
                             //don't write data to our tcp stream while inside this db transaction (all effects to the outside world should be transactional, too)
                             [self freezeSendQueue];
@@ -1500,7 +1500,7 @@ NSString* const kStanza = @"stanza";
         DDLogVerbose(@"sendPing called - now inside receiveQueue");
         
         //make sure we are enabled before doing anything
-        if(![[DataLayer sharedInstance] isAccountEnabled:self.accountID])
+        if(![[MLDataLayer sharedInstance] isAccountEnabled:self.accountID])
         {
             DDLogInfo(@"account is disabled, ignoring ping.");
             return;
@@ -1889,9 +1889,9 @@ NSString* const kStanza = @"stanza";
                 //ignore special presences for status updates (they don't have one)
                 if(![presenceNode check:@"/@type"])
                 {
-                    NSMutableDictionary* accountDetails = [[DataLayer sharedInstance] detailsForAccount:self.accountID];
+                    NSMutableDictionary* accountDetails = [[MLDataLayer sharedInstance] detailsForAccount:self.accountID];
                     accountDetails[@"statusMessage"] = [presenceNode check:@"status#"] ? [presenceNode findFirst:@"status#"] : @"";
-                    [[DataLayer sharedInstance] updateAccounWithDictionary:accountDetails];
+                    [[MLDataLayer sharedInstance] updateAccounWithDictionary:accountDetails];
                 }
             }
             else
@@ -1899,10 +1899,10 @@ NSString* const kStanza = @"stanza";
                 if([presenceNode check:@"/<type=subscribe>"])
                 {
                     // check if we need a contact request
-                    NSDictionary* contactSub = [[DataLayer sharedInstance] getSubscriptionForContact:contact.contactJid andAccount:contact.accountID];
+                    NSDictionary* contactSub = [[MLDataLayer sharedInstance] getSubscriptionForContact:contact.contactJid andAccount:contact.accountID];
                     DDLogVerbose(@"Got subscription request for contact %@ having subscription status: %@", presenceNode.fromUser, contactSub);
                     if(!contactSub || !([[contactSub objectForKey:@"subscription"] isEqualToString:kSubTo] || [[contactSub objectForKey:@"subscription"] isEqualToString:kSubBoth]))
-                        [[DataLayer sharedInstance] addContactRequest:contact];
+                        [[MLDataLayer sharedInstance] addContactRequest:contact];
                     else if(contactSub && [[contactSub objectForKey:@"subscription"] isEqualToString:kSubTo])
                         [self addToRoster:contact withPreauthToken:nil];
                     
@@ -1917,9 +1917,9 @@ NSString* const kStanza = @"stanza";
                 if([presenceNode check:@"/<type=unsubscribe>"])
                 {
                     // check if we need a contact request
-                    NSDictionary* contactSub = [[DataLayer sharedInstance] getSubscriptionForContact:contact.contactJid andAccount:contact.accountID];
+                    NSDictionary* contactSub = [[MLDataLayer sharedInstance] getSubscriptionForContact:contact.contactJid andAccount:contact.accountID];
                     DDLogVerbose(@"Got unsubscribe request of contact %@ having subscription status: %@", presenceNode.fromUser, contactSub);
-                    [[DataLayer sharedInstance] deleteContactRequest:contact];
+                    [[MLDataLayer sharedInstance] deleteContactRequest:contact];
                     
                     //wait 1 sec for nickname and profile image to be processed, then send out kMonalContactRefresh notification
                     createTimer(1.0, (^{
@@ -1932,7 +1932,7 @@ NSString* const kStanza = @"stanza";
                 if(contact.isMuc || [presenceNode check:@"{http://jabber.org/protocol/muc#user}x"] || [presenceNode check:@"{http://jabber.org/protocol/muc}x"])
                 {
                     //only handle presences for mucs we know
-                    if([[DataLayer sharedInstance] isBuddyMuc:presenceNode.fromUser forAccount:self.accountID])
+                    if([[MLDataLayer sharedInstance] isBuddyMuc:presenceNode.fromUser forAccount:self.accountID])
                         [self.mucProcessor processPresence:presenceNode];
                     else
                         DDLogError(@"Got presence of unknown muc %@, ignoring...", presenceNode.fromUser);
@@ -1960,14 +1960,14 @@ NSString* const kStanza = @"stanza";
                         contact.statusMessage = [presenceNode findFirst:@"status#"];
 
                         //add contact if possible (ignore already existing contacts)
-                        [[DataLayer sharedInstance] addContact:presenceNode.fromUser forAccount:self.accountID nickname:nil];
+                        [[MLDataLayer sharedInstance] addContact:presenceNode.fromUser forAccount:self.accountID nickname:nil];
 
                         //clear the state field in db and reset the ver hash for this resource
-                        [[DataLayer sharedInstance] setOnlineBuddy:presenceNode forAccount:self.accountID];
+                        [[MLDataLayer sharedInstance] setOnlineBuddy:presenceNode forAccount:self.accountID];
                         
                         //update buddy state
-                        [[DataLayer sharedInstance] setBuddyState:presenceNode forAccount:self.accountID];
-                        [[DataLayer sharedInstance] setBuddyStatus:presenceNode forAccount:self.accountID];
+                        [[MLDataLayer sharedInstance] setBuddyState:presenceNode forAccount:self.accountID];
+                        [[MLDataLayer sharedInstance] setBuddyStatus:presenceNode forAccount:self.accountID];
                         
                         [[MLNotificationQueue currentQueue] postNotificationName:kMonalNewPresenceNotice object:self userInfo:@{
                             @"jid": presenceNode.fromUser,
@@ -1980,7 +1980,7 @@ NSString* const kStanza = @"stanza";
                 else if([presenceNode check:@"/<type=unavailable>"])
                 {
                     DDLogVerbose(@"Updating lastInteraction from unavailable presence...");
-                    [[DataLayer sharedInstance] setOfflineBuddy:presenceNode forAccount:self.accountID];
+                    [[MLDataLayer sharedInstance] setOfflineBuddy:presenceNode forAccount:self.accountID];
                     
                     [[MLNotificationQueue currentQueue] postNotificationName:kMonalNewPresenceNotice object:self userInfo:@{
                         @"jid": presenceNode.fromUser,
@@ -1994,7 +1994,7 @@ NSString* const kStanza = @"stanza";
                     [[MLNotificationQueue currentQueue] postNotificationName:kMonalLastInteractionUpdatedNotice object:self userInfo:@{
                         @"jid": presenceNode.fromUser,
                         @"accountID": self.accountID,
-                        @"lastInteraction": nilWrapper([[DataLayer sharedInstance] lastInteractionOfJid:presenceNode.fromUser forAccountID:self.accountID]),
+                        @"lastInteraction": nilWrapper([[MLDataLayer sharedInstance] lastInteractionOfJid:presenceNode.fromUser forAccountID:self.accountID]),
                         @"isTyping": @NO,
                         @"resource": nilWrapper(presenceNode.fromResource),
                     }];
@@ -2017,11 +2017,11 @@ NSString* const kStanza = @"stanza";
                     }
                     else
                     {
-                        NSString* ver = [[DataLayer sharedInstance] getVerForUser:presenceNode.fromUser andResource:presenceNode.fromResource onAccountID:self.accountID];
+                        NSString* ver = [[MLDataLayer sharedInstance] getVerForUser:presenceNode.fromUser andResource:presenceNode.fromResource onAccountID:self.accountID];
                         if(!ver || ![ver isEqualToString:newVer])     //caps hash of resource changed
-                            [[DataLayer sharedInstance] setVer:newVer forUser:presenceNode.fromUser andResource:presenceNode.fromResource onAccountID:self.accountID];
+                            [[MLDataLayer sharedInstance] setVer:newVer forUser:presenceNode.fromUser andResource:presenceNode.fromResource onAccountID:self.accountID];
 
-                        if(![[DataLayer sharedInstance] getCapsforVer:newVer onAccountID:self.accountID])
+                        if(![[MLDataLayer sharedInstance] getCapsforVer:newVer onAccountID:self.accountID])
                         {
                             DDLogInfo(@"Presence included unknown caps hash %@, requesting disco query", newVer);
                             shouldQueryCaps = YES;
@@ -2046,17 +2046,17 @@ NSString* const kStanza = @"stanza";
                 
                 //handle last interaction time (this must be done *after* parsing the ver attribute to get the cached capabilities)
                 //but only do so if the urn:xmpp:idle:1 was supported by that resource (e.g. don't send out unneeded updates)
-                if(![presenceNode check:@"/@type"] && presenceNode.fromResource && [[DataLayer sharedInstance] checkCap:@"urn:xmpp:idle:1" forUser:presenceNode.fromUser andResource:presenceNode.fromResource onAccountID:self.accountID])
+                if(![presenceNode check:@"/@type"] && presenceNode.fromResource && [[MLDataLayer sharedInstance] checkCap:@"urn:xmpp:idle:1" forUser:presenceNode.fromUser andResource:presenceNode.fromResource onAccountID:self.accountID])
                 {
                     DDLogVerbose(@"Updating lastInteraction from normal presence...");
-                    //findFirst: will return nil for lastInteraction = "online" --> DataLayer will handle that correctly
-                    [[DataLayer sharedInstance] setLastInteraction:[presenceNode findFirst:@"{urn:xmpp:idle:1}idle@since|datetime"] forJid:presenceNode.fromUser andResource:presenceNode.fromResource onAccountID:self.accountID];
+                    //findFirst: will return nil for lastInteraction = "online" --> MLDataLayer will handle that correctly
+                    [[MLDataLayer sharedInstance] setLastInteraction:[presenceNode findFirst:@"{urn:xmpp:idle:1}idle@since|datetime"] forJid:presenceNode.fromUser andResource:presenceNode.fromResource onAccountID:self.accountID];
                     
                     //inform other parts of our system that the lastInteraction timestamp has changed
                     [[MLNotificationQueue currentQueue] postNotificationName:kMonalLastInteractionUpdatedNotice object:self userInfo:@{
                         @"jid": presenceNode.fromUser,
                         @"accountID": self.accountID,
-                        @"lastInteraction": nilWrapper([[DataLayer sharedInstance] lastInteractionOfJid:presenceNode.fromUser forAccountID:self.accountID]),
+                        @"lastInteraction": nilWrapper([[MLDataLayer sharedInstance] lastInteractionOfJid:presenceNode.fromUser forAccountID:self.accountID]),
                         @"isTyping": @NO,
                         @"resource": nilWrapper(presenceNode.fromResource),
                     }];
@@ -2225,12 +2225,12 @@ NSString* const kStanza = @"stanza";
                 if(stanzaid && [messageNode check:@"/<type=groupchat>"])
                 {
                     DDLogVerbose(@"Updating lastStanzaId of muc archive %@ in database to: %@", messageNode.fromUser, stanzaid);
-                    [[DataLayer sharedInstance] setLastStanzaId:stanzaid forMuc:messageNode.fromUser andAccount:self.accountID];
+                    [[MLDataLayer sharedInstance] setLastStanzaId:stanzaid forMuc:messageNode.fromUser andAccount:self.accountID];
                 }
                 else if(stanzaid && ![messageNode check:@"/<type=groupchat>"])
                 {
                     DDLogVerbose(@"Updating lastStanzaId of user archive in database to: %@", stanzaid);
-                    [[DataLayer sharedInstance] setLastStanzaId:stanzaid forAccount:self.accountID];
+                    [[MLDataLayer sharedInstance] setLastStanzaId:stanzaid forAccount:self.accountID];
                 }
             }
             else if([[outerMessageNode findFirst:@"{urn:xmpp:mam:2}result@queryid"] hasPrefix:@"MLhistory:"])
@@ -2720,7 +2720,7 @@ NSString* const kStanza = @"stanza";
             //pin sasl2 support for this account (this is done only after successful auth to prevent DOS MITM attacks simulating SASL2 support)
             //downgrading to SASL1 would mean PLAIN instead of SCRAM and no protocol agility for channel-bindings,
             //if XEP-0440 is not supported by server
-            [[DataLayer sharedInstance] deactivatePlainForAccount:self.accountID];
+            [[MLDataLayer sharedInstance] deactivatePlainForAccount:self.accountID];
             
             //NOTE: we don't have any stream restart when using SASL2
             //NOTE: we don't need to pipeline anything here, because SASL2 sends out the new stream features immediately without a stream restart
@@ -2903,7 +2903,7 @@ NSString* const kStanza = @"stanza";
                     }
                     //create proper context for pipelining auth stuff (notification queue, db transaction etc.)
                     [MLNotificationQueue queueNotificationsInBlock:^{
-                        [[DataLayer sharedInstance] createTransaction:^{
+                        [[MLDataLayer sharedInstance] createTransaction:^{
                             //don't write data to our tcp stream while inside this db transaction (all effects to the outside world should be transactional, too)
                             [self freezeSendQueue];
                             
@@ -2978,7 +2978,7 @@ NSString* const kStanza = @"stanza";
         //display scary warning message if sasl2 is pinned and login was successful at least once
         //or display a message pointing to the advanced account creation menu if sasl2 is pinned and login was NOT successful at least once
         //(e.g. we are trying to create this account just now)
-        if(![[DataLayer sharedInstance] isPlainActivatedForAccount:self.accountID])
+        if(![[MLDataLayer sharedInstance] isPlainActivatedForAccount:self.accountID])
         {
             DDLogDebug(@"Plain is not activated for this account...");
             if(self->_loggedInOnce)
@@ -3020,7 +3020,7 @@ NSString* const kStanza = @"stanza";
         [self submitRegForm];
     }
     //prefer SASL2 over SASL1
-    else if([parsedStanza check:@"{urn:xmpp:sasl:2}authentication/mechanism"] && (![[DataLayer sharedInstance] isPlainActivatedForAccount:self.accountID] || forceSasl2))
+    else if([parsedStanza check:@"{urn:xmpp:sasl:2}authentication/mechanism"] && (![[MLDataLayer sharedInstance] isPlainActivatedForAccount:self.accountID] || forceSasl2))
     {
         DDLogDebug(@"Trying SASL2...");
         
@@ -3110,15 +3110,15 @@ NSString* const kStanza = @"stanza";
             DDLogWarn(@"Waiting until TLS stream is connected before pipelining the auth element due to channel binding...");
     }
     //check if the server activated SASL2 after previously only upporting SASL1
-    else if([[DataLayer sharedInstance] isPlainActivatedForAccount:self.accountID] && ((NSNumber*)checkProperSasl2Support()).boolValue)
+    else if([[MLDataLayer sharedInstance] isPlainActivatedForAccount:self.accountID] && ((NSNumber*)checkProperSasl2Support()).boolValue)
     {
         DDLogInfo(@"We detected SASL2 SCRAM support, deactivating forced SASL1 PLAIN fallback and retrying using SASL2...");
-        [[DataLayer sharedInstance] deactivatePlainForAccount:self.accountID];
+        [[MLDataLayer sharedInstance] deactivatePlainForAccount:self.accountID];
         //try again, this time using sasl2
         return [self handleFeaturesBeforeAuth:parsedStanza withForceSasl2:YES];
     }
     //SASL1 is fallback only if SASL2 isn't supported with something better than PLAIN
-    else if([parsedStanza check:@"{urn:ietf:params:xml:ns:xmpp-sasl}mechanisms/mechanism"] && [[DataLayer sharedInstance] isPlainActivatedForAccount:self.accountID])
+    else if([parsedStanza check:@"{urn:ietf:params:xml:ns:xmpp-sasl}mechanisms/mechanism"] && [[MLDataLayer sharedInstance] isPlainActivatedForAccount:self.accountID])
     {
         DDLogDebug(@"Trying SASL1...");
         
@@ -3529,7 +3529,7 @@ NSString* const kStanza = @"stanza";
     //make sure to create a transaction before locking the state object to prevent the following deadlock:
     //thread 1 (for example: receiveQueue): holding write transaction and waiting for state lock object
     //thread 2 (for example: urllib session): holding state lock object and waiting for write transaction
-    [[DataLayer sharedInstance] createTransaction:^{
+    [[MLDataLayer sharedInstance] createTransaction:^{
         @synchronized(self->_stateLockObject) {
             DDLogVerbose(@"%@ --> realPersistState before: used/available memory: %.3fMiB / %.3fMiB)...", self.accountID, [HelperTools report_memory], (CGFloat)os_proc_available_memory() / 1048576);
             //state dictionary
@@ -3615,7 +3615,7 @@ NSString* const kStanza = @"stanza";
             [values setObject:[NSNumber numberWithBool:self.hasSeenOmemoDeviceListAfterOwnDeviceid] forKey:@"hasSeenOmemoDeviceListAfterOwnDeviceid"];
             
             //save state dictionary
-            [[DataLayer sharedInstance] persistState:values forAccount:self.accountID];
+            [[MLDataLayer sharedInstance] persistState:values forAccount:self.accountID];
 
             //debug output
             DDLogVerbose(@"%@ --> persistState(saved at %@):\n\tisDoingFullReconnect=%@,\n\tlastHandledInboundStanza=%@,\n\tlastHandledOutboundStanza=%@,\n\tlastOutboundStanza=%@,\n\t#unAckedStanzas=%lu%s,\n\tstreamID=%@\n\tlastInteractionDate=%@\n\tpersistentIqHandlers=%@\n\tsupportsHttpUpload=%d\n\tpushEnabled=%d\n\tsupportsPubSub=%d\n\tsupportsModernPubSub=%d\n\tsupportsPubSubMax=%d\n\tsupportsBookmarksCompat=%d\n\taccountDiscoDone=%d\n\t_inCatchup=%@\n\tomemo.state=%@\n\thasSeenOmemoDeviceListAfterOwnDeviceid=%@\n",
@@ -3656,7 +3656,7 @@ NSString* const kStanza = @"stanza";
 {
     @synchronized(_stateLockObject) {
         DDLogVerbose(@"%@ --> realReadState before: used/available memory: %.3fMiB / %.3fMiB)...", self.accountID, [HelperTools report_memory], (CGFloat)os_proc_available_memory() / 1048576);
-        NSMutableDictionary* dic = [[DataLayer sharedInstance] readStateForAccount:self.accountID];
+        NSMutableDictionary* dic = [[MLDataLayer sharedInstance] readStateForAccount:self.accountID];
         if(dic)
         {
             //check state version
@@ -3929,7 +3929,7 @@ NSString* const kStanza = @"stanza";
     _accountState = kStateBinding;
     
     //delete old resources because we get new presences once we're done initializing the session
-    [[DataLayer sharedInstance] resetContactsForAccount:self.accountID];
+    [[MLDataLayer sharedInstance] resetContactsForAccount:self.accountID];
     
     //inform all old iq handlers of invalidation and clear _iqHandlers dictionary afterwards
     @synchronized(_iqHandlers) {
@@ -3952,7 +3952,7 @@ NSString* const kStanza = @"stanza";
     [self.pubsub invalidateQueue];
     
     //clean up all idle timers
-    [[DataLayer sharedInstance] cleanupIdleTimerOnAccountID:self.accountID];
+    [[MLDataLayer sharedInstance] cleanupIdleTimerOnAccountID:self.accountID];
     
     //force new disco queries because we landed here because of a failed smacks resume
     //(or the account got forcibly disconnected/reconnected or this is the very first login of this account)
@@ -3989,7 +3989,7 @@ NSString* const kStanza = @"stanza";
     //in the parseQueue in the last run and deleted there)
     //--> no harm in deleting them when starting a new session (but DON'T DELETE them when resuming the old smacks session)
     _inCatchup = [NSMutableDictionary new];
-    [[DataLayer sharedInstance] deleteDelayedMessageStanzasForAccount:self.accountID];
+    [[MLDataLayer sharedInstance] deleteDelayedMessageStanzasForAccount:self.accountID];
     
     //send bind iq
     XMPPIQ* iqNode = [[XMPPIQ alloc] initWithType:kiqSetType];
@@ -4085,7 +4085,7 @@ NSString* const kStanza = @"stanza";
     XMPPIQ* roster = [[XMPPIQ alloc] initWithType:kiqGetType];
     NSString* rosterVer;
     if([self.connectionProperties.serverFeatures check:@"{urn:xmpp:features:rosterver}ver"])
-        rosterVer = [[DataLayer sharedInstance] getRosterVersionForAccount:self.accountID];
+        rosterVer = [[MLDataLayer sharedInstance] getRosterVersionForAccount:self.accountID];
     [roster setRosterRequest:rosterVer];
     [self sendIq:roster withHandler:$newHandler(MLIQProcessor, handleRoster)];
 }
@@ -4188,7 +4188,7 @@ NSString* const kStanza = @"stanza";
 
 -(void) updateLocalBlocklistCache:(NSSet<NSString*>*) blockedJids
 {
-    [[DataLayer sharedInstance] updateLocalBlocklistCache:blockedJids forAccountID:self.accountID];
+    [[MLDataLayer sharedInstance] updateLocalBlocklistCache:blockedJids forAccountID:self.accountID];
 }
 
 #pragma mark vcard
@@ -4197,7 +4197,7 @@ NSString* const kStanza = @"stanza";
 {
     NSDictionary* split = [HelperTools splitJid:jid];
     MLAssert(split[@"resource"] != nil, @"getEntitySoftWareVersion needs a full jid!");
-    if([[DataLayer sharedInstance] checkCap:@"jabber:iq:version" forUser:split[@"user"] andResource:split[@"resource"] onAccountID:self.accountID])
+    if([[MLDataLayer sharedInstance] checkCap:@"jabber:iq:version" forUser:split[@"user"] andResource:split[@"resource"] onAccountID:self.accountID])
     {
         XMPPIQ* iqEntitySoftWareVersion = [[XMPPIQ alloc] initWithType:kiqGetType to:jid];
         [iqEntitySoftWareVersion getEntitySoftwareVersionInfo];
@@ -4368,7 +4368,7 @@ NSString* const kStanza = @"stanza";
         }
         
         NSMutableArray* __block historyIdList = [NSMutableArray new];
-        NSNumber* __block historyId = [NSNumber numberWithInt:[[[DataLayer sharedInstance] getSmallestHistoryId] intValue] - retrievedBodies];
+        NSNumber* __block historyId = [NSNumber numberWithInt:[[[MLDataLayer sharedInstance] getSmallestHistoryId] intValue] - retrievedBodies];
         
         //ignore all notifications generated while processing the queued stanzas
         [MLNotificationQueue queueNotificationsInBlock:^{
@@ -4387,7 +4387,7 @@ NSString* const kStanza = @"stanza";
                     //(all effects to the outside world should be transactional, too)
                     [self freezeSendQueue];
                     //process all queued mam stanzas in a dedicated db write transaction
-                    [[DataLayer sharedInstance] createTransaction:^{
+                    [[MLDataLayer sharedInstance] createTransaction:^{
                         DDLogVerbose(@"Handling mam page entry[%u(%@).%u(%@)]): %@", pageNo, @([pageList count]), entryNo, @([page count]), data);
                         MLMessage* msg = [MLMessageProcessor processMessage:data[@"messageNode"] andOuterMessage:data[@"outerMessageNode"] forAccount:self withHistoryId:historyId];
                         DDLogVerbose(@"Got message processor result: %@", msg);
@@ -4417,7 +4417,7 @@ NSString* const kStanza = @"stanza";
         if([historyIdList count] < retrievedBodies)
             DDLogWarn(@"Got %lu mam history messages already contained in history db, possibly ougoing messages that did not have a stanzaid yet!", (unsigned long)(retrievedBodies - [historyIdList count]));
         //query db (again) for the real MLMessage to account for changes in history table by non-body metadata messages received after the body-message
-        completion([[DataLayer sharedInstance] messagesForHistoryIDs:historyIdList], nil);
+        completion([[MLDataLayer sharedInstance] messagesForHistoryIDs:historyIdList], nil);
     };
     responseHandler = ^(XMPPIQ* response) {
         NSMutableArray* mamPage = [self getOrderedMamPageFor:[response findFirst:@"/@id"]];
@@ -4462,14 +4462,14 @@ NSString* const kStanza = @"stanza";
         if(contact.isMuc)
         {
             if(!before)
-                before = [[DataLayer sharedInstance] lastStanzaIdForMuc:contact.contactJid andAccount:self.accountID];
+                before = [[MLDataLayer sharedInstance] lastStanzaIdForMuc:contact.contactJid andAccount:self.accountID];
             [query setiqTo:contact.contactJid];
             [query setMAMQueryLatestMessagesForJid:nil before:before];
         }
         else
         {
             if(!before)
-                before = [[DataLayer sharedInstance] lastStanzaIdForAccount:self.accountID];
+                before = [[MLDataLayer sharedInstance] lastStanzaIdForAccount:self.accountID];
             [query setMAMQueryLatestMessagesForJid:contact.contactJid before:before];
         }
         DDLogDebug(@"Loading (next) mam:2 page before: %@", before);
@@ -4549,7 +4549,7 @@ NSString* const kStanza = @"stanza";
     DDLogVerbose(@"Removing jid from roster: %@", contact);
     
     //delete contact request if it exists
-    [[DataLayer sharedInstance] deleteContactRequest:contact];
+    [[MLDataLayer sharedInstance] deleteContactRequest:contact];
     
     XMPPPresence* presence = [XMPPPresence new];
     [presence unsubscribeContact:contact];
@@ -4569,7 +4569,7 @@ NSString* const kStanza = @"stanza";
     DDLogVerbose(@"(re)adding jid to roster: %@", contact);
     
     //delete contact request if it exists
-    [[DataLayer sharedInstance] deleteContactRequest:contact];
+    [[MLDataLayer sharedInstance] deleteContactRequest:contact];
     
     XMPPPresence* acceptPresence = [XMPPPresence new];
     [acceptPresence subscribedContact:contact];
@@ -5116,7 +5116,7 @@ NSString* const kStanza = @"stanza";
             selectedPushServer = newPushServer;
         }
         // check if the last used push server (db) matches the currently selected server
-        NSString* lastUsedPushServer = [[DataLayer sharedInstance] lastUsedPushServerForAccount:self.accountID];
+        NSString* lastUsedPushServer = [[MLDataLayer sharedInstance] lastUsedPushServerForAccount:self.accountID];
         if([lastUsedPushServer isEqualToString:selectedPushServer] == NO)
             [self disablePushOnOldAndAdditionalServers:lastUsedPushServer];
         else if(needsDeregister)
@@ -5142,7 +5142,7 @@ NSString* const kStanza = @"stanza";
 {
     DDLogVerbose(@"Trying to disable push on account: %@", self.accountID);
     NSString* pushToken = [[HelperTools defaultsDB] objectForKey:@"pushToken"];
-    NSString* pushServer = [[DataLayer sharedInstance] lastUsedPushServerForAccount:self.accountID];
+    NSString* pushServer = [[MLDataLayer sharedInstance] lastUsedPushServerForAccount:self.accountID];
     if(pushToken == nil || pushServer == nil)
     {
         return;
@@ -5196,7 +5196,7 @@ NSString* const kStanza = @"stanza";
         return;
     
     //update idle timers, too
-    [[DataLayer sharedInstance] decrementIdleTimersForAccount:self];
+    [[MLDataLayer sharedInstance] decrementIdleTimersForAccount:self];
     
     //update iq handlers
     BOOL stateUpdated = NO;
@@ -5240,7 +5240,7 @@ NSString* const kStanza = @"stanza";
                         //make sure these handlers are called inside a db write transaction just like receiving a real error iq
                         //--> don't create a deadlock with 2 threads waiting for db write transaction and synchronized iqhandlers
                         //    in opposite order
-                        [[DataLayer sharedInstance] createTransaction:^{
+                        [[MLDataLayer sharedInstance] createTransaction:^{
                             DDLogDebug(@"Calling iq handler with faked error iq: %@", errorIq);
                             if(iqHandler[@"handler"] != nil)
                                 $call(iqHandler[@"handler"], $ID(account, self), $ID(iqNode, errorIq));
@@ -5274,7 +5274,7 @@ NSString* const kStanza = @"stanza";
     if([[originalParsedStanza findFirst:@"/@type"] isEqualToString:@"groupchat"])
         archiveJid = originalParsedStanza.fromUser;
     
-    [[DataLayer sharedInstance] addDelayedMessageStanza:originalParsedStanza forArchiveJid:archiveJid andAccountID:self.accountID];
+    [[MLDataLayer sharedInstance] addDelayedMessageStanza:originalParsedStanza forArchiveJid:archiveJid andAccountID:self.accountID];
 }
 
 //this method is needed to not have a retain cycle (happens when using a block instead of this method in mamFinishedFor:)
@@ -5288,11 +5288,11 @@ NSString* const kStanza = @"stanza";
     
     [MLNotificationQueue queueNotificationsInBlock:^{
         DDLogVerbose(@"Creating db transaction for delayed stanza handling of jid %@", archiveJid);
-        [[DataLayer sharedInstance] createTransaction:^{
+        [[MLDataLayer sharedInstance] createTransaction:^{
             //don't write data to our tcp stream while inside this db transaction (all effects to the outside world should be transactional, too)
             [self freezeSendQueue];
             //pick the next delayed message stanza (will return nil if there isn't any left)
-            MLXMLNode* delayedStanza = [[DataLayer sharedInstance] getNextDelayedMessageStanzaForArchiveJid:archiveJid andAccountID:self.accountID];
+            MLXMLNode* delayedStanza = [[MLDataLayer sharedInstance] getNextDelayedMessageStanzaForArchiveJid:archiveJid andAccountID:self.accountID];
             DDLogDebug(@"Got delayed stanza: %@", delayedStanza);
             if(delayedStanza == nil)
             {
@@ -5396,7 +5396,7 @@ NSString* const kStanza = @"stanza";
         //handle mds update directly, if not in catchup for this jid
         //everything else will be handled once the catchup is finished
         NSString* catchupJid = self.connectionProperties.identity.jid;
-        if([[DataLayer sharedInstance] isBuddyMuc:jid forAccount:self.accountID])
+        if([[MLDataLayer sharedInstance] isBuddyMuc:jid forAccount:self.accountID])
             catchupJid = jid;
         if(_inCatchup[catchupJid] == nil && _mdsData[jid] != nil)
             [self handleMdsData:_mdsData[jid] forJid:jid];
@@ -5409,7 +5409,7 @@ NSString* const kStanza = @"stanza";
     NSString* by = [data findFirst:@"{urn:xmpp:mds:displayed:0}displayed/{urn:xmpp:sid:0}stanza-id@by"];
     DDLogInfo(@"Got mds displayed element for chat %@ by %@: %@", jid, by, stanzaId);
     
-    if([[DataLayer sharedInstance] isBuddyMuc:jid forAccount:self.accountID])
+    if([[MLDataLayer sharedInstance] isBuddyMuc:jid forAccount:self.accountID])
     {
         if(![jid isEqualToString:by])
         {
@@ -5417,8 +5417,8 @@ NSString* const kStanza = @"stanza";
             return;
         }
         
-        //NSString* ownNick = [[DataLayer sharedInstance] ownNickNameforMuc:jid forAccount:self.accountID]
-        NSArray* unread = [[DataLayer sharedInstance] markMessagesAsReadForBuddy:jid andAccount:self.accountID tillStanzaId:stanzaId wasOutgoing:NO];
+        //NSString* ownNick = [[MLDataLayer sharedInstance] ownNickNameforMuc:jid forAccount:self.accountID]
+        NSArray* unread = [[MLDataLayer sharedInstance] markMessagesAsReadForBuddy:jid andAccount:self.accountID tillStanzaId:stanzaId wasOutgoing:NO];
         DDLogDebug(@"Muc marked as read: %@", unread);
         
         //remove notifications of all remotely read messages (indicated by sending a display marker)
@@ -5437,7 +5437,7 @@ NSString* const kStanza = @"stanza";
             return;
         }
         
-        NSArray* unread = [[DataLayer sharedInstance] markMessagesAsReadForBuddy:jid andAccount:self.accountID tillStanzaId:stanzaId wasOutgoing:NO];
+        NSArray* unread = [[MLDataLayer sharedInstance] markMessagesAsReadForBuddy:jid andAccount:self.accountID tillStanzaId:stanzaId wasOutgoing:NO];
         DDLogDebug(@"1:1 marked as read: %@", unread);
         
         //remove notifications of all remotely read messages (indicated by sending a display marker)

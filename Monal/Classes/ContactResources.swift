@@ -28,9 +28,9 @@ struct ContactResources: View {
             self.contactVersionInfos = previewMock!
         } else {
             var tmpInfos:[String:ObservableKVOWrapper<MLContactSoftwareVersionInfo>] = [:]
-            for ressourceName in DataLayer.sharedInstance().resources(for: contact.obj) {
+            for ressourceName in MLDataLayer.sharedInstance().resources(for: contact.obj) {
                 // load already known software version info from database
-                if let softwareInfo = DataLayer.sharedInstance().getSoftwareVersionInfo(forContact:contact.obj.contactJid, resource:ressourceName, andAccount:contact.obj.accountID) {
+                if let softwareInfo = MLDataLayer.sharedInstance().getSoftwareVersionInfo(forContact:contact.obj.contactJid, resource:ressourceName, andAccount:contact.obj.accountID) {
                     tmpInfos[ressourceName] = ObservableKVOWrapper<MLContactSoftwareVersionInfo>(softwareInfo)
                 }
             }
@@ -70,10 +70,10 @@ struct ContactResources: View {
                 Spacer()
                     .frame(height: 20)
                 Section {
-                    let capsVer = DataLayer.sharedInstance().getVerForUser(self.contact.contactJid, andResource:resource, onAccountID:self.contact.accountID)
+                    let capsVer = MLDataLayer.sharedInstance().getVerForUser(self.contact.contactJid, andResource:resource, onAccountID:self.contact.accountID)
                     Text("Caps hash: \(String(describing:capsVer))")
                     Divider()
-                    if let capsSet = DataLayer.sharedInstance().getCapsforVer(capsVer, onAccountID:contact.obj.accountID) as? Set<String> {
+                    if let capsSet = MLDataLayer.sharedInstance().getCapsforVer(capsVer, onAccountID:contact.obj.accountID) as? Set<String> {
                         let caps = Array(capsSet)
                         VStack(alignment: .leading) {
                             ForEach(caps, id: \.self) { cap in
@@ -106,7 +106,7 @@ struct ContactResources: View {
                     DispatchQueue.main.async {
                         DDLogVerbose("Successfully matched presence update to current contact: \(contact.obj)")
                         if available.boolValue {
-                            if let softwareInfo = DataLayer.sharedInstance().getSoftwareVersionInfo(forContact:contact.obj.contactJid, resource:resource, andAccount:contact.obj.accountID) {
+                            if let softwareInfo = MLDataLayer.sharedInstance().getSoftwareVersionInfo(forContact:contact.obj.contactJid, resource:resource, andAccount:contact.obj.accountID) {
                                 self.contactVersionInfos[resource] = ObservableKVOWrapper<MLContactSoftwareVersionInfo>(softwareInfo)
                             }
                             // query software version from contact
@@ -124,7 +124,7 @@ struct ContactResources: View {
                 if jid == contact.obj.contactJid && xmppAccount.accountID == contact.obj.accountID {
                     DispatchQueue.main.async {
                         DDLogVerbose("Successfully matched lastInteraction update to current contact: \(contact.obj)")
-                        self.contactVersionInfos[resource]?.obj.lastInteraction = DataLayer.sharedInstance().lastInteraction(ofJid:self.contact.obj.contactJid, andResource:resource, forAccountID:contact.obj.accountID)
+                        self.contactVersionInfos[resource]?.obj.lastInteraction = MLDataLayer.sharedInstance().lastInteraction(ofJid:self.contact.obj.contactJid, andResource:resource, forAccountID:contact.obj.accountID)
                     }
                 }
             }
@@ -134,7 +134,7 @@ struct ContactResources: View {
             let newTimeout = DispatchTime.now() + 1.0;
             DispatchQueue.main.asyncAfter(deadline: newTimeout) {
                 DDLogVerbose("Refreshing software version info...")
-                for ressourceName in DataLayer.sharedInstance().resources(for: contact.obj) {
+                for ressourceName in MLDataLayer.sharedInstance().resources(for: contact.obj) {
                     // query software version from contact
                     MLXMPPManager.sharedInstance().getEntitySoftWareVersion(for:contact.obj, andResource:ressourceName)
                 }

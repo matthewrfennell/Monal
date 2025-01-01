@@ -9,7 +9,7 @@
 #import "MLContact.h"
 #import "MLMessage.h"
 #import "HelperTools.h"
-#import "DataLayer.h"
+#import "MLDataLayer.h"
 #import "xmpp.h"
 #import "MLXMPPManager.h"
 #import "MLOMEMO.h"
@@ -184,7 +184,7 @@ static NSMutableDictionary* _singletonCache;
 
 +(NSString*) ownDisplayNameForAccount:(xmpp*) account
 {
-    NSDictionary* accountDic = [[DataLayer sharedInstance] detailsForAccount:account.accountID];
+    NSDictionary* accountDic = [[MLDataLayer sharedInstance] detailsForAccount:account.accountID];
     NSString* displayName = accountDic[kRosterName];
     DDLogVerbose(@"Own nickname in accounts table %@: '%@'", account.accountID, displayName);
     if(!displayName || !displayName.length)
@@ -199,7 +199,7 @@ static NSMutableDictionary* _singletonCache;
 
 +(MLContact*) createContactFromDatabaseWithJid:(NSString*) jid andAccountID:(NSNumber*) accountID
 {
-    NSDictionary* contactDict = [[DataLayer sharedInstance] contactDictionaryForUsername:jid forAccount:accountID];
+    NSDictionary* contactDict = [[MLDataLayer sharedInstance] contactDictionaryForUsername:jid forAccount:accountID];
     MLContact* retval;
     // check if we know this contact and return a dummy one if not
     if(contactDict == nil)
@@ -232,7 +232,7 @@ static NSMutableDictionary* _singletonCache;
         retval = [self contactFromDictionary:contactDict];
     }
     //initialize the blocking state, which is not stored in the buddylist table
-    retval.isBlocked = [[DataLayer sharedInstance] isBlockedContact:retval];
+    retval.isBlocked = [[MLDataLayer sharedInstance] isBlockedContact:retval];
     return retval;
 }
 
@@ -303,7 +303,7 @@ static NSMutableDictionary* _singletonCache;
     NSNumber* notificationAccountID = data[@"accountID"];
     if(self.accountID.intValue != notificationAccountID.intValue)
         return;         // ignore other accounts
-    self.isBlocked = [[DataLayer sharedInstance] isBlockedContact:self];
+    self.isBlocked = [[MLDataLayer sharedInstance] isBlockedContact:self];
     DDLogInfo(@"Updated the blocking state of contact %@ => isBlocked=%@", self, bool2str(self.isBlocked));
 }
 
@@ -389,7 +389,7 @@ static NSMutableDictionary* _singletonCache;
         if(hasSelfnotesPrefix)
         {
             //add "Note to self: " prefix for selfchats
-            if([[DataLayer sharedInstance] enabledAccountCnts].intValue > 1)
+            if([[MLDataLayer sharedInstance] enabledAccountCnts].intValue > 1)
                 displayName = [NSString stringWithFormat:NSLocalizedString(@"Notes to self: %@", @""), [[self class] ownDisplayNameForAccount:account]];
             else
                 displayName = NSLocalizedString(@"Notes to self", @"");
@@ -466,7 +466,7 @@ static NSMutableDictionary* _singletonCache;
         return;             //no change at all
     self.fullName = name;
     xmpp* account = self.account;
-    [[DataLayer sharedInstance] setFullName:self.fullName forContact:self.contactJid andAccount:account.accountID];
+    [[MLDataLayer sharedInstance] setFullName:self.fullName forContact:self.contactJid andAccount:account.accountID];
     // abort old change timer and start a new one
     if(_cancelFullNameChange)
         _cancelFullNameChange();
@@ -519,7 +519,7 @@ static NSMutableDictionary* _singletonCache;
 {
     //either we already allowed each other or we allow this contact and asked them to allow us
     //--> if isInRoster is true this is displayed as "remove contact" in contact details, otherwise it will be displayed as "add contact"
-    //(mucs have a subscription of 'both', ensured by the datalayer)
+    //(mucs have a subscription of 'both', ensured by the MLDataLayer)
     return [self.subscription isEqualToString:kSubBoth] || ([self.subscription isEqualToString:kSubFrom] && [self.ask isEqualToString:kAskSubscribe]);
 }
 
@@ -562,7 +562,7 @@ static NSMutableDictionary* _singletonCache;
 
 -(BOOL) hasIncomingContactRequest
 {
-    return self.isMuc == NO && [[DataLayer sharedInstance] hasContactRequestForContact:self];
+    return self.isMuc == NO && [[MLDataLayer sharedInstance] hasContactRequestForContact:self];
 }
 
 +(NSSet*) keyPathsForValuesAffectingHasIncomingContactRequest
@@ -594,7 +594,7 @@ static NSMutableDictionary* _singletonCache;
 -(NSInteger) unreadCount
 {
     if(_unreadCount == -1)
-        _unreadCount = [[[DataLayer sharedInstance] countUserUnreadMessages:self.contactJid forAccount:self.accountID] integerValue];
+        _unreadCount = [[[MLDataLayer sharedInstance] countUserUnreadMessages:self.contactJid forAccount:self.accountID] integerValue];
     return _unreadCount;
 }
 
@@ -611,9 +611,9 @@ static NSMutableDictionary* _singletonCache;
     if(self.isMuted == mute)
         return;
     if(mute)
-        [[DataLayer sharedInstance] muteContact:self];
+        [[MLDataLayer sharedInstance] muteContact:self];
     else
-        [[DataLayer sharedInstance] unMuteContact:self];
+        [[MLDataLayer sharedInstance] unMuteContact:self];
     self.isMuted = mute;
 }
 
@@ -622,9 +622,9 @@ static NSMutableDictionary* _singletonCache;
     if(!self.isMuc || self.isMentionOnly == mentionOnly)
         return;
     if(mentionOnly)
-        [[DataLayer sharedInstance] setMucAlertOnMentionOnly:self.contactJid onAccount:self.accountID];
+        [[MLDataLayer sharedInstance] setMucAlertOnMentionOnly:self.contactJid onAccount:self.accountID];
     else
-        [[DataLayer sharedInstance] setMucAlertOnAll:self.contactJid onAccount:self.accountID];
+        [[MLDataLayer sharedInstance] setMucAlertOnAll:self.contactJid onAccount:self.accountID];
     self.isMentionOnly = mentionOnly;
 }
 
@@ -655,9 +655,9 @@ static NSMutableDictionary* _singletonCache;
         return YES;
     
     if(encrypt)
-        [[DataLayer sharedInstance] encryptForJid:self.contactJid andAccountID:self.accountID];
+        [[MLDataLayer sharedInstance] encryptForJid:self.contactJid andAccountID:self.accountID];
     else
-        [[DataLayer sharedInstance] disableEncryptForJid:self.contactJid andAccountID:self.accountID];
+        [[MLDataLayer sharedInstance] disableEncryptForJid:self.contactJid andAccountID:self.accountID];
     self.isEncrypted = encrypt;
     return YES;
 #endif
@@ -668,9 +668,9 @@ static NSMutableDictionary* _singletonCache;
     if(self.isPinned == pinned)
         return;
     if(pinned)
-        [[DataLayer sharedInstance] pinChat:self.accountID andBuddyJid:self.contactJid];
+        [[MLDataLayer sharedInstance] pinChat:self.accountID andBuddyJid:self.contactJid];
     else
-        [[DataLayer sharedInstance] unPinChat:self.accountID andBuddyJid:self.contactJid];
+        [[MLDataLayer sharedInstance] unPinChat:self.accountID andBuddyJid:self.contactJid];
     self.isPinned = pinned;
     // update active chats
     xmpp* account = self.account;
@@ -705,7 +705,7 @@ static NSMutableDictionary* _singletonCache;
 
 -(void) clearHistory
 {
-    [[DataLayer sharedInstance] clearMessagesWithBuddy:self.contactJid onAccount:self.accountID];
+    [[MLDataLayer sharedInstance] clearMessagesWithBuddy:self.contactJid onAccount:self.accountID];
     [[MLNotificationQueue currentQueue] postNotificationName:kMonalRefresh object:nil userInfo:nil];
 }
 
@@ -856,7 +856,7 @@ static NSMutableDictionary* _singletonCache;
     contact.isEncrypted = [[dic objectForKey:@"encrypt"] boolValue];
     contact.isMuted = [[dic objectForKey:@"muted"] boolValue];
     // initial value comes from db, all other values get updated by our kMonalLastInteractionUpdatedNotice handler
-    contact.lastInteractionTime = nilExtractor([dic objectForKey:@"lastInteraction"]);        //no default needed, already done in DataLayer
+    contact.lastInteractionTime = nilExtractor([dic objectForKey:@"lastInteraction"]);        //no default needed, already done in MLDataLayer
     contact.rosterGroups = [dic objectForKey:@"rosterGroups"];
     contact->_avatar = nil;
 

@@ -8,13 +8,13 @@
 
 #import <Foundation/Foundation.h>
 #import "MLSQLite.h"
-#import "DataLayer.h"
+#import "MLDataLayer.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface DataLayerMigrations : NSObject
 
-+(BOOL) migrateDB:(MLSQLite*) db withDataLayer:(DataLayer*) dataLayer;
++(BOOL) migrateDB:(MLSQLite*) db withMLDataLayer:(MLDataLayer*) MLDataLayer;
 
 @end
 

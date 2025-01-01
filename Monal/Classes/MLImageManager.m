@@ -9,7 +9,7 @@
 #import "MLImageManager.h"
 #import "MLXMPPManager.h"
 #import "HelperTools.h"
-#import "DataLayer.h"
+#import "MLDataLayer.h"
 #import "AESGcm.h"
 #import "UIColor+Extension.h"
 
@@ -116,21 +116,21 @@
 -(void) cleanupHashes
 {
     NSFileManager* fileManager = [NSFileManager defaultManager];
-    NSArray<MLContact*>* contactList = [[DataLayer sharedInstance] contactList];
+    NSArray<MLContact*>* contactList = [[MLDataLayer sharedInstance] contactList];
     
     for(MLContact* contact in contactList)
     {
         NSString* writablePath = [self.documentsDirectory stringByAppendingPathComponent:@"buddyicons"];
         writablePath = [writablePath stringByAppendingPathComponent:contact.accountID.stringValue];
         writablePath = [writablePath stringByAppendingPathComponent:[self fileNameforContact:contact]];
-        NSString* hash = [[DataLayer sharedInstance] getAvatarHashForContact:contact.contactJid andAccount:contact.accountID];
+        NSString* hash = [[MLDataLayer sharedInstance] getAvatarHashForContact:contact.contactJid andAccount:contact.accountID];
         BOOL hasHash = ![@"" isEqualToString:hash];
         
         if(hasHash && ![fileManager isReadableFileAtPath:writablePath])
         {
             DDLogDebug(@"Deleting orphan hash '%@' of contact: %@", hash, contact);
             //delete avatar hash from db if the file containing our image data vanished
-            [[DataLayer sharedInstance] setAvatarHash:@"" forContact:contact.contactJid andAccount:contact.accountID];
+            [[MLDataLayer sharedInstance] setAvatarHash:@"" forContact:contact.contactJid andAccount:contact.accountID];
         }
         
         if(!hasHash && [fileManager isReadableFileAtPath:writablePath])

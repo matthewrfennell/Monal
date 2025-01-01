@@ -10,7 +10,7 @@
 
 #import <Contacts/Contacts.h>
 #import "ActiveChatsViewController.h"
-#import "DataLayer.h"
+#import "MLDataLayer.h"
 #import "xmpp.h"
 #import "MLNotificationManager.h"
 #import "MLXMPPManager.h"
@@ -253,10 +253,10 @@ static NSMutableSet* _pushWarningDisplayed;
     UITapGestureRecognizer* tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(showContacts:)];
     self.composeButton.customView = [HelperTools
         buttonWithNotificationBadgeForImage:image
-        hasNotification:[[DataLayer sharedInstance] allContactRequests].count > 0
+        hasNotification:[[MLDataLayer sharedInstance] allContactRequests].count > 0
         withTapHandler:tapRecognizer];
     [self.composeButton setIsAccessibilityElement:YES];
-    if([[DataLayer sharedInstance] allContactRequests].count > 0)
+    if([[MLDataLayer sharedInstance] allContactRequests].count > 0)
         [self.composeButton setAccessibilityLabel:NSLocalizedString(@"Open contact list (contact requests pending)", @"")];
     else
         [self.composeButton setAccessibilityLabel:NSLocalizedString(@"Open contact list", @"")];
@@ -337,8 +337,8 @@ static NSMutableSet* _pushWarningDisplayed;
 {
     size_t unpinnedConCntBefore = self.unpinnedContacts.count;
     size_t pinnedConCntBefore = self.pinnedContacts.count;
-    NSMutableArray<MLContact*>* newUnpinnedContacts = [[DataLayer sharedInstance] activeContactsWithPinned:NO];
-    NSMutableArray<MLContact*>* newPinnedContacts = [[DataLayer sharedInstance] activeContactsWithPinned:YES];
+    NSMutableArray<MLContact*>* newUnpinnedContacts = [[MLDataLayer sharedInstance] activeContactsWithPinned:NO];
+    NSMutableArray<MLContact*>* newPinnedContacts = [[MLDataLayer sharedInstance] activeContactsWithPinned:YES];
     if(!newUnpinnedContacts || ! newPinnedContacts)
         return;
 
@@ -371,7 +371,7 @@ static NSMutableSet* _pushWarningDisplayed;
         if([MLNotificationManager sharedInstance].currentContact != nil)
         {
             BOOL found = NO;
-            for(NSDictionary* accountDict in [[DataLayer sharedInstance] enabledAccountList])
+            for(NSDictionary* accountDict in [[MLDataLayer sharedInstance] enabledAccountList])
             {
                 NSNumber* accountID = accountDict[kAccountID];
                 if([MLNotificationManager sharedInstance].currentContact.accountID.intValue == accountID.intValue)
@@ -661,7 +661,7 @@ static NSMutableSet* _pushWarningDisplayed;
         
         prependToViewQueue(MLViewIDWelcomeLoginView, (^(PMKResolver resolve) {
 #ifdef IS_QUICKSY
-            if([[[DataLayer sharedInstance] accountList] count] == 0)
+            if([[[MLDataLayer sharedInstance] accountList] count] == 0)
             {
                 DDLogDebug(@"Showing account registration view...");
                 UIViewController* view = [[SwiftuiInterface new] makeAccountRegistration:@{}];
@@ -679,7 +679,7 @@ static NSMutableSet* _pushWarningDisplayed;
                 resolve(nil);
 #else
             // display quick start if the user never seen it or if there are 0 enabled accounts
-            if([[DataLayer sharedInstance] enabledAccountCnts].intValue == 0 && !self->_loginAlreadyAutodisplayed)
+            if([[MLDataLayer sharedInstance] enabledAccountCnts].intValue == 0 && !self->_loginAlreadyAutodisplayed)
             {
                 DDLogDebug(@"Showing WelcomeLogIn view...");
                 UIViewController* loginViewController = [[SwiftuiInterface new] makeViewWithName:@"WelcomeLogIn"];
@@ -717,7 +717,7 @@ static NSMutableSet* _pushWarningDisplayed;
         
         prependToViewQueue((^(PMKResolver resolve) {
             //open password migration if needed
-            NSArray* needingMigration = [[DataLayer sharedInstance] accountListNeedingPasswordMigration];
+            NSArray* needingMigration = [[MLDataLayer sharedInstance] accountListNeedingPasswordMigration];
             if(needingMigration.count > 0)
             {
 #ifdef IS_QUICKSY
@@ -808,7 +808,7 @@ static NSMutableSet* _pushWarningDisplayed;
 
 -(void) showWarningsIfNeeded
 {
-    for(NSDictionary* accountDict in [[DataLayer sharedInstance] enabledAccountList])
+    for(NSDictionary* accountDict in [[MLDataLayer sharedInstance] enabledAccountList])
     {
         NSNumber* accountID = accountDict[kAccountID];
         xmpp* account = [[MLXMPPManager sharedInstance] getEnabledAccountForID:accountID];
@@ -1062,7 +1062,7 @@ static NSMutableSet* _pushWarningDisplayed;
             
             //open chat (make sure we have an active buddy for it and add it to our ui, if needed)
             //but don't animate this if the contact is already present in our list
-            [[DataLayer sharedInstance] addActiveBuddies:contact.contactJid forAccount:contact.accountID];
+            [[MLDataLayer sharedInstance] addActiveBuddies:contact.contactJid forAccount:contact.accountID];
             if([[self getChatArrayForSection:pinnedChats] containsObject:contact] || [[self getChatArrayForSection:unpinnedChats] containsObject:contact])
             {
                 if([[HelperTools defaultsDB] boolForKey:@"showNewChatView"])
@@ -1099,7 +1099,7 @@ static NSMutableSet* _pushWarningDisplayed;
 -(BOOL) showAccountNumberWarningIfNeeded
 {
     // Only open contacts list / roster if at least one account is enabled
-    if([[DataLayer sharedInstance] enabledAccountCnts].intValue == 0) {
+    if([[MLDataLayer sharedInstance] enabledAccountCnts].intValue == 0) {
         // Show warning
         UIAlertController* alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"No enabled account found", @"") message:NSLocalizedString(@"Please add a new account under settings first. If you already added your account you may need to enable it under settings", @"") preferredStyle:UIAlertControllerStyleAlert];
         [alert addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"Close", @"") style:UIAlertActionStyleDefault handler:^(UIAlertAction* action __unused) {
@@ -1189,7 +1189,7 @@ static NSMutableSet* _pushWarningDisplayed;
         chatContact = [self.unpinnedContacts objectAtIndex:indexPath.row];
     
     // Display msg draft or last msg
-    MLMessage* messageRow = [[DataLayer sharedInstance] lastMessageForContact:chatContact.contactJid forAccount:chatContact.accountID];
+    MLMessage* messageRow = [[MLDataLayer sharedInstance] lastMessageForContact:chatContact.contactJid forAccount:chatContact.accountID];
 
     [cell initCell:chatContact withLastMessage:messageRow];
 
@@ -1247,7 +1247,7 @@ static NSMutableSet* _pushWarningDisplayed;
         }
         [self.chatListTable deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
         // removeActiveBuddy in db
-        [[DataLayer sharedInstance] removeActiveBuddy:contact.contactJid forAccount:contact.accountID];
+        [[MLDataLayer sharedInstance] removeActiveBuddy:contact.contactJid forAccount:contact.accountID];
         // remove contact from activechats table
         [self refreshDisplay];
         // open placeholder

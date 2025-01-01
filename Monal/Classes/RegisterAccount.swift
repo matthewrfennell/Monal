@@ -165,7 +165,7 @@ struct RegisterAccount: View {
     }
 
     private var credentialsExist: Bool {
-        return DataLayer.sharedInstance().doesAccountExistUser(username, andDomain:actualServer)
+        return MLDataLayer.sharedInstance().doesAccountExistUser(username, andDomain:actualServer)
     }
 
     private var registerButtonDisabled: Bool {
@@ -209,7 +209,7 @@ struct RegisterAccount: View {
                         kPlainActivated: self.actualServer == "conversations.im" ? false : true,
                     ] as [String : Any]
 
-                    let accountID = DataLayer.sharedInstance().addAccount(with: dic);
+                    let accountID = MLDataLayer.sharedInstance().addAccount(with: dic);
                     if(accountID != nil) {
                         self.registeredAccountID = accountID!.intValue
                         MLXMPPManager.sharedInstance().addNewAccountToKeychainAndConnect(withPassword:self.password, andAccountID:accountID!)

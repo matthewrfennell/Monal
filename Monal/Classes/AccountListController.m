@@ -7,7 +7,7 @@
 //
 
 #import "AccountListController.h"
-#import "DataLayer.h"
+#import "MLDataLayer.h"
 #import "MLXMPPManager.h"
 #import "HelperTools.h"
 
@@ -66,7 +66,7 @@
 
 -(void) refreshAccountList
 {
-    NSArray* accountList = [[DataLayer sharedInstance] accountList];
+    NSArray* accountList = [[MLDataLayer sharedInstance] accountList];
     dispatch_async(dispatch_get_main_queue(), ^{
         self.accountList = accountList;
         [self.accountsTable reloadData];

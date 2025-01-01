@@ -7,7 +7,7 @@
 //
 
 #import "MLSearchViewController.h"
-#import "DataLayer.h"
+#import "MLDataLayer.h"
 
 @interface MLSearchViewController ()
 @property (nonatomic, strong) NSMutableArray* searchResultMessageList;
@@ -245,7 +245,7 @@
 
 - (void) getSearchData:(NSString*) queryText
 {
-    NSArray* searchResultArray = [[DataLayer sharedInstance] searchResultOfHistoryMessageWithKeyWords:queryText betweenContact:self.contact];
+    NSArray* searchResultArray = [[MLDataLayer sharedInstance] searchResultOfHistoryMessageWithKeyWords:queryText betweenContact:self.contact];
     [self.searchResultMessageList removeAllObjects];
     self.searchResultMessageList = [searchResultArray mutableCopy];
 }

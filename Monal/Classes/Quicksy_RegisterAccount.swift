@@ -111,13 +111,13 @@ struct Quicksy_RegisterAccount: View {
                 showLoadingOverlay(overlay, headline:NSLocalizedString("Logging in", comment: ""))
                 self.errorObserverEnabled = true
                 //check if account is already configured and reset its password and its enabled and needs_password_migration states 
-                if let newAccountID = DataLayer.sharedInstance().accountID(forUser:number, andDomain:"quicksy.im") {
+                if let newAccountID = MLDataLayer.sharedInstance().accountID(forUser:number, andDomain:"quicksy.im") {
                     self.newAccountID = newAccountID
-                    var accountDict = DataLayer.sharedInstance().details(forAccount:newAccountID) as! [String:AnyObject]
+                    var accountDict = MLDataLayer.sharedInstance().details(forAccount:newAccountID) as! [String:AnyObject]
                     accountDict["needs_password_migration"] = NSNumber(value:false)
                     accountDict["enabled"] = NSNumber(value:true)
                     DDLogDebug("Updating account in DB: enabled=\(String(describing:accountDict["enabled"])), needs_password_migration=\(String(describing:accountDict["needs_password_migration"])), password.count=\(password.count)")
-                    DataLayer.sharedInstance().updateAccoun(with:accountDict)
+                    MLDataLayer.sharedInstance().updateAccoun(with:accountDict)
                     MLXMPPManager.sharedInstance().updatePassword(password, forAccount:newAccountID)
                     DDLogDebug("Connecting successfully recovered and enabled account...")
                     MLXMPPManager.sharedInstance().connectAccount(newAccountID)

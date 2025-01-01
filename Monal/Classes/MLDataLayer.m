@@ -1,12 +1,12 @@
 //
-//  DataLayer.m
+//  MLDataLayer.m
 //  SworIM
 //
 //  Created by Anurodh Pokharel on 3/28/09.
 //  Copyright 2009 __MyCompanyName__. All rights reserved.
 //
 
-#import "DataLayer.h"
+#import "MLDataLayer.h"
 #import "xmpp.h"
 #import "MLSQLite.h"
 #import "HelperTools.h"
@@ -21,11 +21,11 @@
 #import "MLXMPPManager.h"
 #import <monalxmpp/monalxmpp-Swift.h>
 
-@interface DataLayer()
+@interface MLDataLayer()
 @property (readonly, strong) MLSQLite* db;
 @end
 
-@implementation DataLayer
+@implementation MLDataLayer
 
 NSString* const kAccountID = @"account_id";
 NSString* const kAccountState = @"account_state";
@@ -80,7 +80,7 @@ static NSDateFormatter* dbFormatter;
 //we are a singleton (compatible with old code), but conceptually we could also be a static class instead
 +(id) sharedInstance
 {
-    static DataLayer* newInstance;
+    static MLDataLayer* newInstance;
     static dispatch_once_t once;
     dispatch_once(&once, ^{
         newInstance = [self new];
@@ -105,7 +105,7 @@ static NSDateFormatter* dbFormatter;
     [self.db executeNonQuery:@"PRAGMA foreign_keys=off;"];
 
     //do db upgrades and vacuum db afterwards
-    if([DataLayerMigrations migrateDB:self.db withDataLayer:self])
+    if([DataLayerMigrations migrateDB:self.db withMLDataLayer:self])
         [self.db vacuum];
 
     //turn foreign keys on again

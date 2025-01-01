@@ -16,7 +16,7 @@
 
 #import "ActiveChatsViewController.h"
 #import "AESGcm.h"
-#import "DataLayer.h"
+#import "MLDataLayer.h"
 #import "HelperTools.h"
 #import "MBProgressHUD.h"
 #import "MLChatInputContainer.h"
@@ -136,7 +136,7 @@ enum msgSentState {
 {
     self.hidesBottomBarWhenPushed = YES;
 
-    NSDictionary* accountDict = [[DataLayer sharedInstance] detailsForAccount:self.contact.accountID];
+    NSDictionary* accountDict = [[MLDataLayer sharedInstance] detailsForAccount:self.contact.accountID];
     if(accountDict)
         self.jid = [NSString stringWithFormat:@"%@@%@",[accountDict objectForKey:@"username"], [accountDict objectForKey:@"domain"]];
 
@@ -151,7 +151,7 @@ enum msgSentState {
 {
     [super viewDidLoad];
 
-    if([[DataLayer sharedInstance] isContactInList:self.contact.contactJid forAccount:self.contact.accountID] == NO)
+    if([[MLDataLayer sharedInstance] isContactInList:self.contact.contactJid forAccount:self.contact.accountID] == NO)
     {
         DDLogWarn(@"ChatView: Contact %@ is unkown", self.contact.contactJid);
 #ifdef IS_ALPHA
@@ -237,7 +237,7 @@ enum msgSentState {
     [self updateCallButtonImage];
     
     //ping this muc on open, to make sure we are still joined
-    if([[[DataLayer sharedInstance] listMucsForAccount:self.contact.accountID] containsObject:self.contact.contactJid])
+    if([[[MLDataLayer sharedInstance] listMucsForAccount:self.contact.accountID] containsObject:self.contact.contactJid])
         [self.xmppAccount.mucProcessor ping:self.contact.contactJid];
 }
 
@@ -538,7 +538,7 @@ enum msgSentState {
     
     MonalAppDelegate* appDelegate = (MonalAppDelegate *)[[UIApplication sharedApplication] delegate];
     MLCall* activeCall = [appDelegate.voipProcessor getActiveCallWithContact:self.contact];
-    if(activeCall == nil && ![[DataLayer sharedInstance] checkCap:@"urn:xmpp:jingle-message:0" forUser:self.contact.contactJid onAccountID:self.contact.accountID])
+    if(activeCall == nil && ![[MLDataLayer sharedInstance] checkCap:@"urn:xmpp:jingle-message:0" forUser:self.contact.contactJid onAccountID:self.contact.accountID])
     {
         UIAlertController* alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Missing Call Support", @"") message:NSLocalizedString(@"Your contact may not support calls. Your call might never reach its destination.", @"") preferredStyle:UIAlertControllerStyleActionSheet];
         [alert addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"Try nevertheless", @"") style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
@@ -648,14 +648,14 @@ enum msgSentState {
 
     //send button is always enabled, except if the account is permanently disabled
     sendButtonEnabled = YES;
-    if(![[DataLayer sharedInstance] isAccountEnabled:self.contact.accountID])
+    if(![[MLDataLayer sharedInstance] isAccountEnabled:self.contact.accountID])
         sendButtonEnabled = NO;
 
     jidLabelText = contactDisplayName;
 
     if(self.contact.isMuc)
     {
-        NSArray* members = [[DataLayer sharedInstance] getMembersAndParticipantsOfMuc:self.contact.contactJid forAccountID:self.xmppAccount.accountID];
+        NSArray* members = [[MLDataLayer sharedInstance] getMembersAndParticipantsOfMuc:self.contact.contactJid forAccountID:self.xmppAccount.accountID];
         NSInteger membercount = members.count;
         if([self.contact.mucType isEqualToString:kMucTypeGroup])
         {
@@ -822,7 +822,7 @@ enum msgSentState {
 
     self.placeHolderText.text = [NSString stringWithFormat:NSLocalizedString(@"Message from %@", @""), self.jid];
     // Load message draft from db
-    NSString* messageDraft = [[DataLayer sharedInstance] loadMessageDraft:self.contact.contactJid forAccount:self.contact.accountID];
+    NSString* messageDraft = [[MLDataLayer sharedInstance] loadMessageDraft:self.contact.contactJid forAccount:self.contact.accountID];
     if(messageDraft && [messageDraft length] > 0) {
         dispatch_async(dispatch_get_main_queue(), ^{
             self.chatInput.text = messageDraft;
@@ -905,7 +905,7 @@ enum msgSentState {
 -(BOOL) saveMessageDraft
 {
     // Save message draft
-    return [[DataLayer sharedInstance] saveMessageDraft:self.contact.contactJid forAccount:self.contact.accountID withComment:self.chatInput.text];
+    return [[MLDataLayer sharedInstance] saveMessageDraft:self.contact.contactJid forAccount:self.contact.accountID withComment:self.chatInput.text];
 }
 
 -(void) dealloc
@@ -966,7 +966,7 @@ enum msgSentState {
             //don't block the main thread while writing to the db (another thread could hold a write transaction already, slowing down the main thread)
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
                 //get list of unread messages
-                NSArray* unread = [[DataLayer sharedInstance] markMessagesAsReadForBuddy:self.contact.contactJid andAccount:self.contact.accountID tillStanzaId:nil wasOutgoing:NO];
+                NSArray* unread = [[MLDataLayer sharedInstance] markMessagesAsReadForBuddy:self.contact.contactJid andAccount:self.contact.accountID tillStanzaId:nil wasOutgoing:NO];
 
                 //publish MDS display marker and optionally send displayed marker for last unread message (XEP-0333)
                 DDLogDebug(@"Sending MDS (and possibly XEP-0333 displayed marker) for messages: %@", unread);
@@ -996,8 +996,8 @@ enum msgSentState {
     if(!self.contact.contactJid)
         return;
 
-    NSMutableArray<MLMessage*>* messages = [[DataLayer sharedInstance] messagesForContact:self.contact.contactJid forAccount: self.contact.accountID];
-    NSNumber* unreadMsgCnt = [[DataLayer sharedInstance] countUserUnreadMessages:self.contact.contactJid forAccount: self.contact.accountID];
+    NSMutableArray<MLMessage*>* messages = [[MLDataLayer sharedInstance] messagesForContact:self.contact.contactJid forAccount: self.contact.accountID];
+    NSNumber* unreadMsgCnt = [[MLDataLayer sharedInstance] countUserUnreadMessages:self.contact.contactJid forAccount: self.contact.accountID];
 
     if([unreadMsgCnt integerValue] == 0)
         self->_firstmsg = YES;
@@ -1044,13 +1044,13 @@ enum msgSentState {
     DDLogVerbose(@"Sending message");
     NSString* newMessageID = messageID ? messageID : [[NSUUID UUID] UUIDString];
     //dont readd it, use the exisitng
-    NSDictionary* accountDict = [[DataLayer sharedInstance] detailsForAccount:self.contact.accountID];
+    NSDictionary* accountDict = [[MLDataLayer sharedInstance] detailsForAccount:self.contact.accountID];
     if(accountDict == nil)
     {
         DDLogError(@"AccountID %@ not found!", self.contact.accountID);
         return;
     }
-    if(self.contact.contactJid == nil || [[DataLayer sharedInstance] isContactInList:self.contact.contactJid forAccount:self.contact.accountID] == NO)
+    if(self.contact.contactJid == nil || [[MLDataLayer sharedInstance] isContactInList:self.contact.contactJid forAccount:self.contact.accountID] == NO)
     {
         DDLogError(@"Can not send message to unkown contact %@ on accountID %@ - GUI Error", self.contact.contactJid, self.contact.accountID);
         return;
@@ -1070,7 +1070,7 @@ enum msgSentState {
     else
     {
         //clean error because this seems to be a retry (to be filled again, if error persists)
-        [[DataLayer sharedInstance] clearErrorOfMessageId:newMessageID];
+        [[MLDataLayer sharedInstance] clearErrorOfMessageId:newMessageID];
         for(size_t msgIdx = [self.messageList count]; msgIdx > 0; msgIdx--)
         {
             // find msg that should be updated
@@ -1624,11 +1624,11 @@ enum msgSentState {
         return nil;
     }
 
-    NSNumber* messageDBId = [[DataLayer sharedInstance] addMessageHistoryTo:to forAccount:self.contact.accountID withMessage:message actuallyFrom:(self.contact.isMuc ? self.contact.accountNickInGroup : self.jid) withId:messageId encrypted:self.contact.isEncrypted messageType:messageType mimeType:mimeType size:size];
+    NSNumber* messageDBId = [[MLDataLayer sharedInstance] addMessageHistoryTo:to forAccount:self.contact.accountID withMessage:message actuallyFrom:(self.contact.isMuc ? self.contact.accountNickInGroup : self.jid) withId:messageId encrypted:self.contact.isEncrypted messageType:messageType mimeType:mimeType size:size];
     if(messageDBId != nil)
     {
         DDLogVerbose(@"added message");
-        NSArray* msgList = [[DataLayer sharedInstance] messagesForHistoryIDs:@[messageDBId]];
+        NSArray* msgList = [[MLDataLayer sharedInstance] messagesForHistoryIDs:@[messageDBId]];
         if(![msgList count])
         {
             DDLogError(@"Could not find msg for history ID %@!", messageDBId);
@@ -1661,7 +1661,7 @@ enum msgSentState {
         // make sure its in active chats list
         if(_firstmsg == YES)
         {
-            [[DataLayer sharedInstance] addActiveBuddies:to forAccount:self.contact.accountID];
+            [[MLDataLayer sharedInstance] addActiveBuddies:to forAccount:self.contact.accountID];
             _firstmsg = NO;
         }
         
@@ -1981,7 +1981,7 @@ enum msgSentState {
 -(void) retry:(id) sender
 {
     NSInteger msgHistoryID = ((UIButton*) sender).tag;
-    NSArray* msgArray = [[DataLayer sharedInstance] messagesForHistoryIDs:@[[NSNumber numberWithInteger:msgHistoryID]]];
+    NSArray* msgArray = [[MLDataLayer sharedInstance] messagesForHistoryIDs:@[[NSNumber numberWithInteger:msgHistoryID]]];
     if(![msgArray count])
     {
         DDLogError(@"Called retry for non existing message with history id %ld", (long)msgHistoryID);
@@ -2143,7 +2143,7 @@ enum msgSentState {
             DDLogVerbose(@"Loading link preview for %@", toreturn.link);
             [self loadPreviewWithUrlForRow:indexPath withResultHandler:^{
                 DDLogVerbose(@"Reloading row for preview: %@", messageText);
-                [[DataLayer sharedInstance] setMessageId:row.messageId previewText:[row.previewText copy] andPreviewImage:[row.previewImage.absoluteString copy]];
+                [[MLDataLayer sharedInstance] setMessageId:row.messageId previewText:[row.previewText copy] andPreviewImage:[row.previewImage.absoluteString copy]];
                 //reload cells
                 dispatch_async(dispatch_get_main_queue(), ^{
                     [self->_messageTable reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationNone];
@@ -2378,7 +2378,7 @@ enum msgSentState {
             } else  {
                 dispatch_async(dispatch_get_main_queue(), ^{
                     NSDictionary* selectedItem = [MLFiletransfer getFileInfoForMessage:[self.messageList objectAtIndex:indexPath.row]];
-                    NSMutableArray* allItems = [[DataLayer sharedInstance] allAttachmentsFromContact:self.contact.contactJid forAccount:self.contact.accountID];
+                    NSMutableArray* allItems = [[MLDataLayer sharedInstance] allAttachmentsFromContact:self.contact.contactJid forAccount:self.contact.accountID];
                     UIViewController* imageViewer = [[SwiftuiInterface new] makeImageViewerForCurrentItem:selectedItem allItems:allItems];
                     imageViewer.modalPresentationStyle = UIModalPresentationOverFullScreen;
                     [self presentViewController:imageViewer animated:YES completion:^{}];
@@ -2447,7 +2447,7 @@ enum msgSentState {
                 message.messageText = newBody;
 
                 [self.xmppAccount sendMessage:newBody toContact:self.contact isEncrypted:(self.contact.isEncrypted || message.encrypted) isUpload:NO andMessageId:[[NSUUID UUID] UUIDString] withLMCId:message.messageId];
-                [[DataLayer sharedInstance] updateMessageHistory:message.messageDBId withText:newBody];
+                [[MLDataLayer sharedInstance] updateMessageHistory:message.messageDBId withText:newBody];
 
                 [self->_messageTable beginUpdates];
                 [self->_messageTable reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationNone];
@@ -2478,7 +2478,7 @@ enum msgSentState {
         }];
         NSMutableString* quoteString = [NSMutableString new];
         //add datetime before quoting message if message is older than 15 minutes and 8 messages
-        NSDate* timestamp = [[DataLayer sharedInstance] returnTimestampForQuote:message.messageDBId];
+        NSDate* timestamp = [[MLDataLayer sharedInstance] returnTimestampForQuote:message.messageDBId];
         if(timestamp != nil)
         {
             [self.destinationDateFormat setDateStyle:NSDateFormatterMediumStyle];
@@ -2507,8 +2507,8 @@ enum msgSentState {
         if(!message.inbound)
         {
             [self.xmppAccount retractMessage:message];
-            [[DataLayer sharedInstance] retractMessageHistory:message.messageDBId];
-            [message updateWithMessage:[[[DataLayer sharedInstance] messagesForHistoryIDs:@[message.messageDBId]] firstObject]];
+            [[MLDataLayer sharedInstance] retractMessageHistory:message.messageDBId];
+            [message updateWithMessage:[[[MLDataLayer sharedInstance] messagesForHistoryIDs:@[message.messageDBId]] firstObject]];
 
             //update table entry
             [self->_messageTable beginUpdates];
@@ -2530,7 +2530,7 @@ enum msgSentState {
     retractAction.image = [[[UIImage systemImageNamed:@"arrow.uturn.backward.circle.fill"] imageWithHorizontallyFlippedOrientation] imageWithTintColor:UIColor.whiteColor renderingMode:UIImageRenderingModeAutomatic];
 
     UIContextualAction* localDeleteAction = [UIContextualAction contextualActionWithStyle:UIContextualActionStyleDestructive title:NSLocalizedString(@"Delete", @"Chat msg action") handler:^(UIContextualAction* action, UIView* sourceView, void (^completionHandler)(BOOL actionPerformed)) {
-        [[DataLayer sharedInstance] deleteMessageHistoryLocally:message.messageDBId];
+        [[MLDataLayer sharedInstance] deleteMessageHistoryLocally:message.messageDBId];
 
         [self->_messageTable beginUpdates];
         [self.messageList removeObjectAtIndex:indexPath.row];
@@ -2560,14 +2560,14 @@ enum msgSentState {
     copyAction.image = [[[UIImage systemImageNamed:@"doc.on.doc.fill"] imageWithHorizontallyFlippedOrientation] imageWithTintColor:UIColor.whiteColor renderingMode:UIImageRenderingModeAutomatic];
 
     //only allow editing for the 3 newest message && only on outgoing messages
-    if((!message.inbound && [[DataLayer sharedInstance] checkLMCEligible:message.messageDBId encrypted:(message.encrypted || self.contact.isEncrypted) historyBaseID:nil]) && (!message.isMuc || (message.isMuc && message.stanzaId != nil)) && !message.retracted)
+    if((!message.inbound && [[MLDataLayer sharedInstance] checkLMCEligible:message.messageDBId encrypted:(message.encrypted || self.contact.isEncrypted) historyBaseID:nil]) && (!message.isMuc || (message.isMuc && message.stanzaId != nil)) && !message.retracted)
         return [UISwipeActionsConfiguration configurationWithActions:@[
             quoteAction,
             copyAction,
             LMCEditAction,
             retractAction,
         ]];
-    else if(!message.inbound && [[DataLayer sharedInstance] checkLMCEligible:message.messageDBId encrypted:(message.encrypted || self.contact.isEncrypted) historyBaseID:nil] && !message.retracted)
+    else if(!message.inbound && [[MLDataLayer sharedInstance] checkLMCEligible:message.messageDBId encrypted:(message.encrypted || self.contact.isEncrypted) historyBaseID:nil] && !message.retracted)
         return [UISwipeActionsConfiguration configurationWithActions:@[
             quoteAction,
             copyAction,
@@ -2576,7 +2576,7 @@ enum msgSentState {
         ]];
     //only allow retraction for outgoing messages or if we are the moderator of that muc
     //but only allow retraction in mucs if we already got the reflected stanzaid (or if this is an 1:1 chat)
-    else if((!message.inbound || (self.contact.isMuc && [[[DataLayer sharedInstance] getOwnRoleInGroupOrChannel:self.contact] isEqualToString:kMucRoleModerator] && [[self.xmppAccount.mucProcessor getRoomFeaturesForMuc:self.contact.contactJid] containsObject:@"urn:xmpp:message-moderate:1"])) && (!message.isMuc || (message.isMuc && message.stanzaId != nil)) && !message.retracted)
+    else if((!message.inbound || (self.contact.isMuc && [[[MLDataLayer sharedInstance] getOwnRoleInGroupOrChannel:self.contact] isEqualToString:kMucRoleModerator] && [[self.xmppAccount.mucProcessor getRoomFeaturesForMuc:self.contact.contactJid] containsObject:@"urn:xmpp:message-moderate:1"])) && (!message.isMuc || (message.isMuc && message.stanzaId != nil)) && !message.retracted)
         return [UISwipeActionsConfiguration configurationWithActions:@[
             quoteAction,
             copyAction,
@@ -2697,7 +2697,7 @@ enum msgSentState {
     NSNumber* beforeId = nil;
     if(self.messageList.count > 0)
         beforeId = ((MLMessage*)[self.messageList objectAtIndex:0]).messageDBId;
-    oldMessages = [[DataLayer sharedInstance] messagesForContact:self.contact.contactJid forAccount:self.contact.accountID beforeMsgHistoryID:beforeId];
+    oldMessages = [[MLDataLayer sharedInstance] messagesForContact:self.contact.contactJid forAccount:self.contact.accountID beforeMsgHistoryID:beforeId];
 
     if(!self.isLoadingMam && [oldMessages count] < kMonalBackscrollingMsgCount)
     {
@@ -2730,9 +2730,9 @@ enum msgSentState {
         if(oldestStanzaId == nil)
         {
             if(self.contact.isMuc)
-                oldestStanzaId = [[DataLayer sharedInstance] lastStanzaIdForMuc:self.contact.contactJid andAccount:self.contact.accountID];
+                oldestStanzaId = [[MLDataLayer sharedInstance] lastStanzaIdForMuc:self.contact.contactJid andAccount:self.contact.accountID];
             else
-                oldestStanzaId = [[DataLayer sharedInstance] lastStanzaIdForAccount:self.contact.accountID];
+                oldestStanzaId = [[MLDataLayer sharedInstance] lastStanzaIdForAccount:self.contact.accountID];
         }
 
         //now load more (older) messages from mam
@@ -3161,7 +3161,7 @@ enum msgSentState {
 -(void) checkOmemoSupportWithAlert:(BOOL) showWarning
 {
 #ifndef DISABLE_OMEMO
-    if(self.xmppAccount && [[DataLayer sharedInstance] isAccountEnabled:self.xmppAccount.accountID])
+    if(self.xmppAccount && [[MLDataLayer sharedInstance] isAccountEnabled:self.xmppAccount.accountID])
     {
         BOOL omemoDeviceForContactFound = NO;
         if(!self.contact.isMuc)
@@ -3169,7 +3169,7 @@ enum msgSentState {
         else
         {
             omemoDeviceForContactFound = NO;
-            for(NSDictionary* participant in [[DataLayer sharedInstance] getMembersAndParticipantsOfMuc:self.contact.contactJid forAccountID:self.xmppAccount.accountID])
+            for(NSDictionary* participant in [[MLDataLayer sharedInstance] getMembersAndParticipantsOfMuc:self.contact.contactJid forAccountID:self.xmppAccount.accountID])
             {
                 if(participant[@"participant_jid"])
                     omemoDeviceForContactFound |= [self.xmppAccount.omemo knownDevicesForAddressName:participant[@"participant_jid"]].count > 0;
@@ -3186,14 +3186,14 @@ enum msgSentState {
                 // cheogram.com does not support OMEMO encryption as it is a PSTN gateway
                 // --> disable it
                 self.contact.isEncrypted = NO;
-                [[DataLayer sharedInstance] disableEncryptForJid:self.contact.contactJid andAccountID:self.contact.accountID];
+                [[MLDataLayer sharedInstance] disableEncryptForJid:self.contact.contactJid andAccountID:self.contact.accountID];
             }
             else if(self.contact.isMuc && ![self.contact.mucType isEqualToString:kMucTypeGroup])
             {
                 // a channel type muc has OMEMO encryption enabled, but channels don't support encryption
                 // --> disable it
                 self.contact.isEncrypted = NO;
-                [[DataLayer sharedInstance] disableEncryptForJid:self.contact.contactJid andAccountID:self.contact.accountID];
+                [[MLDataLayer sharedInstance] disableEncryptForJid:self.contact.contactJid andAccountID:self.contact.accountID];
             }
             else if(!self.contact.isMuc || (self.contact.isMuc && [self.contact.mucType isEqualToString:kMucTypeGroup]))
             {
@@ -3206,7 +3206,7 @@ enum msgSentState {
                         // Disable encryption
                         self.contact.isEncrypted = NO;
                         [self updateUIElements];
-                        [[DataLayer sharedInstance] disableEncryptForJid:self.contact.contactJid andAccountID:self.contact.accountID];
+                        [[MLDataLayer sharedInstance] disableEncryptForJid:self.contact.contactJid andAccountID:self.contact.accountID];
                         [alert dismissViewControllerAnimated:YES completion:nil];
                     }]];
                     [self presentViewController:alert animated:YES completion:nil];

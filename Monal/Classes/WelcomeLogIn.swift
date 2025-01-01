@@ -111,7 +111,7 @@ struct WelcomeLogIn: View {
     
     private var credentialsExist: Bool {
         let components = jid.components(separatedBy: "@")
-        return DataLayer.sharedInstance().doesAccountExistUser(components[0], andDomain:components[1])
+        return MLDataLayer.sharedInstance().doesAccountExistUser(components[0], andDomain:components[1])
     }
 
     private var loginButtonDisabled: Bool {
@@ -303,7 +303,7 @@ struct WelcomeLogIn: View {
                                     .foregroundColor(Color.accentColor)
                             }
                             
-                            if(DataLayer.sharedInstance().enabledAccountCnts() == 0) {
+                            if(MLDataLayer.sharedInstance().enabledAccountCnts() == 0) {
                                 Button(action: {
                                     self.delegate.dismiss()
                                 }){

@@ -136,13 +136,13 @@ struct ChatView: View {
     
     private func checkOmemoSupport(withAlert showWarning: Bool) {
 #if !DISABLE_OMEMO
-    if DataLayer.sharedInstance().isAccountEnabled(contact.accountID) {
+    if MLDataLayer.sharedInstance().isAccountEnabled(contact.accountID) {
         var omemoDeviceForContactFound = false
         if !contact.isMuc {
             omemoDeviceForContactFound = account.omemo.knownDevices(forAddressName:contact.contactJid).count > 0
         } else {
             omemoDeviceForContactFound = false
-            for participant in DataLayer.sharedInstance().getMembersAndParticipants(ofMuc:contact.contactJid, forAccountID:contact.accountID) {
+            for participant in MLDataLayer.sharedInstance().getMembersAndParticipants(ofMuc:contact.contactJid, forAccountID:contact.accountID) {
                 if let participant_jid = participant["participant_jid"] as? String {
                     omemoDeviceForContactFound = omemoDeviceForContactFound || account.omemo.knownDevices(forAddressName:participant_jid).count > 0
                 } else if let participant_jid = participant["member_jid"] as? String {
@@ -158,12 +158,12 @@ struct ChatView: View {
                 // this contact was blacklisted for encryption
                 // --> disable it
                 contact.isEncrypted = false
-                DataLayer.sharedInstance().disableEncrypt(forJid:contact.contactJid, andAccountID:contact.accountID)
+                MLDataLayer.sharedInstance().disableEncrypt(forJid:contact.contactJid, andAccountID:contact.accountID)
             } else if contact.isMuc && contact.mucType != kMucTypeGroup {
                 // a channel type muc has OMEMO encryption enabled, but channels don't support encryption
                 // --> disable it
                 contact.isEncrypted = false
-                DataLayer.sharedInstance().disableEncrypt(forJid:contact.contactJid, andAccountID:contact.accountID)
+                MLDataLayer.sharedInstance().disableEncrypt(forJid:contact.contactJid, andAccountID:contact.accountID)
             } else if !contact.isMuc || (contact.isMuc && contact.mucType == kMucTypeGroup) {
                 hideLoadingOverlay(overlay)
                 
@@ -175,7 +175,7 @@ struct ChatView: View {
                         dismissLabel: Text("Disable Encryption")
                     ) {
                         contact.isEncrypted = false
-                        DataLayer.sharedInstance().disableEncrypt(forJid:contact.contactJid, andAccountID:contact.accountID)
+                        MLDataLayer.sharedInstance().disableEncrypt(forJid:contact.contactJid, andAccountID:contact.accountID)
                     }
                 } else {
                     DDLogInfo("Trying to fetch omemo keys for: \(self.contact)")
@@ -271,7 +271,7 @@ struct ChatView: View {
                     let voipProcessor = (UIApplication.shared.delegate as! MonalAppDelegate).voipProcessor!
                     Button {
                         if let activeCall = voipProcessor.getActiveCall(with:contact.obj) {
-                            if !DataLayer.sharedInstance().checkCap("urn:xmpp:jingle-message:0", forUser:contact.contactJid, onAccountID:contact.accountID) {
+                            if !MLDataLayer.sharedInstance().checkCap("urn:xmpp:jingle-message:0", forUser:contact.contactJid, onAccountID:contact.accountID) {
                                 confirmationPrompt = ConfirmationPrompt(
                                     title: Text("Missing Call Support"),
                                     message: Text("Your contact may not support calls. Your call might never reach its destination."),
@@ -341,7 +341,7 @@ struct ChatView: View {
             checkOmemoSupport(withAlert:false)
             
             //TODO: load messages from db
-            let dbMessages = DataLayer.sharedInstance().messages(forContact:contact.contactJid, forAccount:contact.accountID) as! [MLMessage]
+            let dbMessages = MLDataLayer.sharedInstance().messages(forContact:contact.contactJid, forAccount:contact.accountID) as! [MLMessage]
             for msg in dbMessages {
                 messages.append(ChatViewMessage(msg))
             }

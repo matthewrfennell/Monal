@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 #import "MLConstants.h"
 #import "MLFiletransfer.h"
-#import "DataLayer.h"
+#import "MLDataLayer.h"
 #import "MLEncryptedPayload.h"
 #import "xmpp.h"
 #import "AESGcm.h"
@@ -54,7 +54,7 @@ static NSObject* _hardlinkingSyncObject;
 +(void) checkMimeTypeAndSizeForHistoryID:(NSNumber*) historyId
 {
     NSString* url;
-    MLMessage* msg = [[DataLayer sharedInstance] messageForHistoryID:historyId];
+    MLMessage* msg = [[MLDataLayer sharedInstance] messageForHistoryID:historyId];
     if(!msg)
     {
         DDLogError(@"historyId %@ does not yield an MLMessage object, aborting", historyId);
@@ -114,7 +114,7 @@ static NSObject* _hardlinkingSyncObject;
             DDLogDebug(@"Updating db and sending out kMonalMessageFiletransferUpdateNotice");
             
             //update db with content type and size
-            [[DataLayer sharedInstance] setMessageHistoryId:historyId filetransferMimeType:mimeType filetransferSize:contentLength];
+            [[MLDataLayer sharedInstance] setMessageHistoryId:historyId filetransferMimeType:mimeType filetransferSize:contentLength];
 
             //send out update notification (and update used MLMessage object directly instead of reloading it from db after updating the db)
             msg.filetransferMimeType = mimeType;
@@ -155,7 +155,7 @@ static NSObject* _hardlinkingSyncObject;
 
 +(void) downloadFileForHistoryID:(NSNumber*) historyId andForceDownload:(BOOL) forceDownload
 {
-    MLMessage* msg = [[DataLayer sharedInstance] messageForHistoryID:historyId];
+    MLMessage* msg = [[MLDataLayer sharedInstance] messageForHistoryID:historyId];
     if(!msg)
     {
         DDLogError(@"historyId %@ does not yield an MLMessage object, aborting", historyId);
@@ -284,7 +284,7 @@ static NSObject* _hardlinkingSyncObject;
             
             DDLogDebug(@"Updating db and sending out kMonalMessageFiletransferUpdateNotice");
             //update db with content type and size
-            [[DataLayer sharedInstance] setMessageHistoryId:historyId filetransferMimeType:mimeType filetransferSize:filetransferSize];
+            [[MLDataLayer sharedInstance] setMessageHistoryId:historyId filetransferMimeType:mimeType filetransferSize:filetransferSize];
             //send out update notification (using our directly update MLMessage object instead of reloading it from db after updating the db)
             xmpp* account = [[MLXMPPManager sharedInstance] getEnabledAccountForID:msg.accountID];
             if(account != nil)      //don't send out update notices for already deleted accounts
@@ -687,13 +687,13 @@ $$
         DDLogInfo(@"Migrating old image store to new filetransfer cache");
         
         //first of all upgrade all message types (needed to make getFileInfoForMessage: work later on)
-        [[DataLayer sharedInstance] upgradeImageMessagesToFiletransferMessages];
+        [[MLDataLayer sharedInstance] upgradeImageMessagesToFiletransferMessages];
         
         //copy all images listed in old imageCache db tables to our new filetransfer store
         NSArray* paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
         NSString* documentsDirectory = [paths objectAtIndex:0];
         NSString* cachePath = [documentsDirectory stringByAppendingPathComponent:@"imagecache"];
-        for(NSDictionary* img in [[DataLayer sharedInstance] getAllCachedImages])
+        for(NSDictionary* img in [[MLDataLayer sharedInstance] getAllCachedImages])
         {
             //extract old url, file and mime type
             NSURLComponents* urlComponents = [NSURLComponents componentsWithString:img[@"url"]];
@@ -715,7 +715,7 @@ $$
             
             //update every history_db entry with new filetransfer metadata
             //(this will flip the message type to kMessageTypeFiletransfer and set correct mimeType and size values)
-            NSArray* messageList = [[DataLayer sharedInstance] getAllMessagesForFiletransferUrl:img[@"url"]];
+            NSArray* messageList = [[MLDataLayer sharedInstance] getAllMessagesForFiletransferUrl:img[@"url"]];
             if(![messageList count])
             {
                 DDLogWarn(@"No messages in history db having this url, deleting file completely");
@@ -730,13 +730,13 @@ $$
                     DDLogDebug(@"FILETRANSFER INFO: %@", info);
                     //don't update mime type and size if we still need to download the file (both is unknown in this case)
                     if(info && ![info[@"needsDownloading"] boolValue])
-                        [[DataLayer sharedInstance] setMessageHistoryId:msg.messageDBId filetransferMimeType:info[@"mimeType"] filetransferSize:info[@"size"]];
+                        [[MLDataLayer sharedInstance] setMessageHistoryId:msg.messageDBId filetransferMimeType:info[@"mimeType"] filetransferSize:info[@"size"]];
                 }
             }
         }
         
         //remove old db tables completely
-        [[DataLayer sharedInstance] removeImageCacheTables];
+        [[MLDataLayer sharedInstance] removeImageCacheTables];
         [[HelperTools defaultsDB] setBool:YES forKey:@"ImageCacheMigratedToFiletransferCache"];
         DDLogInfo(@"Migration done");
     }
@@ -814,7 +814,7 @@ $$
 +(void) setErrorType:(NSString*) errorType andErrorText:(NSString*) errorText forMessage:(MLMessage*) msg
 {
     //update db
-    [[DataLayer sharedInstance]
+    [[MLDataLayer sharedInstance]
         setMessageId:msg.messageId
         andJid:msg.buddyName
         errorType:errorType

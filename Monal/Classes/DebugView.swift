@@ -54,7 +54,7 @@ struct LogFilesView: View {
                 }
                 Section(header: Text("Database Files")) {
                     Button("Main Database") {
-                        if let dbFile = DataLayer.sharedInstance().exportDB() {
+                        if let dbFile = MLDataLayer.sharedInstance().exportDB() {
                             self.fileURL = URL(fileURLWithPath: dbFile)
                         } else {
                             showingDBExportFailedAlert = true

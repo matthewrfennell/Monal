@@ -41,11 +41,11 @@ struct MemberList: View {
     
     func updateMemberlist() {
         memberList = getContactList(viewContact:self.muc)
-        ownAffiliation = DataLayer.sharedInstance().getOwnAffiliation(inGroupOrChannel:self.muc.obj) ?? kMucAffiliationNone
+        ownAffiliation = MLDataLayer.sharedInstance().getOwnAffiliation(inGroupOrChannel:self.muc.obj) ?? kMucAffiliationNone
         affiliations.removeAll(keepingCapacity:true)
         online.removeAll(keepingCapacity:true)
         nicknames.removeAll(keepingCapacity:true)
-        for memberInfo in Array(DataLayer.sharedInstance().getMembersAndParticipants(ofMuc:self.muc.contactJid, forAccountID:account.accountID)) {
+        for memberInfo in Array(MLDataLayer.sharedInstance().getMembersAndParticipants(ofMuc:self.muc.contactJid, forAccountID:account.accountID)) {
             DDLogVerbose("Got member/participant entry: \(String(describing:memberInfo))")
             guard let jid = memberInfo["participant_jid"] as? String ?? memberInfo["member_jid"] as? String else {
                 continue
@@ -345,7 +345,7 @@ struct MemberList: View {
                 DDLogVerbose("Got muc participants/members update from account \(xmppAccount)...")
                 //only trigger update if we are either in a group type muc or have admin/owner priviledges
                 //all other cases will close this view anyways, it makes no sense to update everything directly before hiding thsi view
-                if contact == self.muc && (contact.mucType == kMucTypeGroup || [kMucAffiliationOwner, kMucAffiliationAdmin].contains(DataLayer.sharedInstance().getOwnAffiliation(inGroupOrChannel:self.muc.obj) ?? kMucAffiliationNone)) {
+                if contact == self.muc && (contact.mucType == kMucTypeGroup || [kMucAffiliationOwner, kMucAffiliationAdmin].contains(MLDataLayer.sharedInstance().getOwnAffiliation(inGroupOrChannel:self.muc.obj) ?? kMucAffiliationNone)) {
                     updateMemberlist()
                 }
             }

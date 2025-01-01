@@ -175,8 +175,8 @@ class Contacts: ObservableObject {
     private var subscriptions: Set<AnyCancellable> = Set()
 
     init() {
-        self.contacts = Set(DataLayer.sharedInstance().contactList())
-        self.requestCount = DataLayer.sharedInstance().allContactRequests().count
+        self.contacts = Set(MLDataLayer.sharedInstance().contactList())
+        self.requestCount = MLDataLayer.sharedInstance().allContactRequests().count
         subscriptions = [
             NotificationCenter.default.publisher(for: NSNotification.Name("kMonalContactRemoved"))
                 .receive(on: DispatchQueue.main)
@@ -188,7 +188,7 @@ class Contacts: ObservableObject {
     }
 
     private func refreshContacts() {
-        self.contacts = Set(DataLayer.sharedInstance().contactList())
-        self.requestCount = DataLayer.sharedInstance().allContactRequests().count
+        self.contacts = Set(MLDataLayer.sharedInstance().contactList())
+        self.requestCount = MLDataLayer.sharedInstance().allContactRequests().count
     }
 }

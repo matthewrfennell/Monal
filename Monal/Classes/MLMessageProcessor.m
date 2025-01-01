@@ -7,7 +7,7 @@
 //
 
 #import "MLMessageProcessor.h"
-#import "DataLayer.h"
+#import "MLDataLayer.h"
 #import "SignalAddress.h"
 #import "HelperTools.h"
 #import "AESGcm.h"
@@ -83,7 +83,7 @@ static NSMutableDictionary* _typingNotifications;
             errorText = NSLocalizedString(@"No further error description", @"");
         
         //update db
-        [[DataLayer sharedInstance]
+        [[MLDataLayer sharedInstance]
             setMessageId:messageNode.id
             andJid:messageNode.fromUser
             errorType:errorType
@@ -114,7 +114,7 @@ static NSMutableDictionary* _typingNotifications;
     if([messageNode check:@"{http://quobis.com/xmpp/muc#push}notification"])
     {
         NSString* roomJid = [messageNode findFirst:@"{http://quobis.com/xmpp/muc#push}notification@jid"];
-        if([[[DataLayer sharedInstance] listMucsForAccount:account.accountID] containsObject:roomJid])
+        if([[[MLDataLayer sharedInstance] listMucsForAccount:account.accountID] containsObject:roomJid])
             [account.mucProcessor ping:roomJid];
         return nil;
     }
@@ -250,7 +250,7 @@ static NSMutableDictionary* _typingNotifications;
     if(([messageNode check:@"/<type=groupchat>"] || [messageNode check:@"{http://jabber.org/protocol/muc#user}x"]) && ![messageNode check:@"{http://jabber.org/protocol/muc#user}x/invite"])
     {
         // Ignore all group chat msgs from unkown groups
-        if(![[[DataLayer sharedInstance] listMucsForAccount:account.accountID] containsObject:messageNode.fromUser])
+        if(![[[MLDataLayer sharedInstance] listMucsForAccount:account.accountID] containsObject:messageNode.fromUser])
         {
             // ignore message
             DDLogWarn(@"Ignoring groupchat message from %@", messageNode.toUser);
@@ -312,7 +312,7 @@ static NSMutableDictionary* _typingNotifications;
     
     //add contact if possible (ignore groupchats or already existing contacts, or KeyTransportElements)
     DDLogInfo(@"Adding possibly unknown contact for %@ to local contactlist (not updating remote roster!), doing nothing if contact is already known...", possiblyUnknownContact);
-    [[DataLayer sharedInstance] addContact:possiblyUnknownContact.contactJid forAccount:account.accountID nickname:nil];
+    [[MLDataLayer sharedInstance] addContact:possiblyUnknownContact.contactJid forAccount:account.accountID nickname:nil];
     
     NSString* ownNick = nil;
     NSString* ownOccupantId = nil;
@@ -323,15 +323,15 @@ static NSMutableDictionary* _typingNotifications;
     {
         actualFrom = messageNode.fromResource ?: @"";
         
-        ownNick = [[DataLayer sharedInstance] ownNickNameforMuc:messageNode.fromUser forAccount:account.accountID];
-        ownOccupantId = [[DataLayer sharedInstance] getOwnOccupantIdForMuc:messageNode.fromUser onAccountID:account.accountID];
+        ownNick = [[MLDataLayer sharedInstance] ownNickNameforMuc:messageNode.fromUser forAccount:account.accountID];
+        ownOccupantId = [[MLDataLayer sharedInstance] getOwnOccupantIdForMuc:messageNode.fromUser onAccountID:account.accountID];
         
         //occupant ids are widely supported now and allow us to have a stable identifier of every muc participant,
         //even if it is a semi-anonymous channel
         if([[account.mucProcessor getRoomFeaturesForMuc:messageNode.fromUser] containsObject:@"urn:xmpp:occupant-id:0"] && [messageNode check:@"{urn:xmpp:occupant-id:0}occupant-id@id"])
         {
             occupantId = [messageNode findFirst:@"{urn:xmpp:occupant-id:0}occupant-id@id"];
-            NSDictionary* mucParticipant = [[DataLayer sharedInstance] getParticipantForOccupant:occupantId inRoom:messageNode.fromUser forAccountID:account.accountID];
+            NSDictionary* mucParticipant = [[MLDataLayer sharedInstance] getParticipantForOccupant:occupantId inRoom:messageNode.fromUser forAccountID:account.accountID];
             //we will be able to get to know the real jid, if this is a group or we are the channel admin
             participantJid = mucParticipant ? mucParticipant[@"participant_jid"] : nil;
         }
@@ -349,7 +349,7 @@ static NSMutableDictionary* _typingNotifications;
         //but don't do so, if this was a message from the bare muc jid
         if(![outerMessageNode check:@"{urn:xmpp:mam:2}result"] && occupantId == nil && participantJid == nil && ![@"" isEqualToString:actualFrom])
         {
-            NSDictionary* mucParticipant = [[DataLayer sharedInstance] getParticipantForNick:actualFrom inRoom:messageNode.fromUser forAccountID:account.accountID];
+            NSDictionary* mucParticipant = [[MLDataLayer sharedInstance] getParticipantForNick:actualFrom inRoom:messageNode.fromUser forAccountID:account.accountID];
             participantJid = mucParticipant ? mucParticipant[@"participant_jid"] : nil;
         }
         
@@ -382,7 +382,7 @@ static NSMutableDictionary* _typingNotifications;
         {
             NSString* subject = nilDefault([messageNode findFirst:@"/<type=groupchat>/subject#"], @"");
             subject = [subject stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-            NSString* currentSubject = [[DataLayer sharedInstance] mucSubjectforAccount:account.accountID andRoom:messageNode.fromUser];
+            NSString* currentSubject = [[MLDataLayer sharedInstance] mucSubjectforAccount:account.accountID andRoom:messageNode.fromUser];
             DDLogInfo(@"Got MUC subject for %@: '%@'", messageNode.fromUser, subject);
             
             if([subject isEqualToString:currentSubject])
@@ -392,7 +392,7 @@ static NSMutableDictionary* _typingNotifications;
             }
             
             DDLogVerbose(@"Updating subject in database: %@", subject);
-            [[DataLayer sharedInstance] updateMucSubject:subject forAccount:account.accountID andRoom:messageNode.fromUser];
+            [[MLDataLayer sharedInstance] updateMucSubject:subject forAccount:account.accountID andRoom:messageNode.fromUser];
             
             [[MLNotificationQueue currentQueue] postNotificationName:kMonalMucSubjectChanged object:account userInfo:@{
                 @"room": messageNode.fromUser,
@@ -466,22 +466,22 @@ static NSMutableDictionary* _typingNotifications;
         NSNumber* historyIdToRetract = nil;
         if(possiblyUnknownContact.isMuc && [[account.mucProcessor getRoomFeaturesForMuc:possiblyUnknownContact.contactJid] containsObject:@"urn:xmpp:message-moderate:1"] && [messageNode findFirst:@"{urn:xmpp:message-retract:1}retract/{urn:xmpp:message-moderate:1}moderated"])
         {
-            historyIdToRetract = [[DataLayer sharedInstance] getRetractionHistoryIDForModeratedStanzaId:idToRetract from:messageNode.fromUser andAccount:account.accountID];
+            historyIdToRetract = [[MLDataLayer sharedInstance] getRetractionHistoryIDForModeratedStanzaId:idToRetract from:messageNode.fromUser andAccount:account.accountID];
         }
         else
         {
             //this checks for everything spelled out in the business rules of XEP-0424
-            historyIdToRetract = [[DataLayer sharedInstance] getRetractionHistoryIDForMessageId:idToRetract from:messageNode.fromUser participantJid:participantJid occupantId:occupantId andAccount:account.accountID];
+            historyIdToRetract = [[MLDataLayer sharedInstance] getRetractionHistoryIDForMessageId:idToRetract from:messageNode.fromUser participantJid:participantJid occupantId:occupantId andAccount:account.accountID];
         }
         
         if(historyIdToRetract != nil)
         {
-            [[DataLayer sharedInstance] retractMessageHistory:historyIdToRetract];
+            [[MLDataLayer sharedInstance] retractMessageHistory:historyIdToRetract];
             
             //update ui
             DDLogInfo(@"Sending out kMonalDeletedMessageNotice notification for historyId %@", historyIdToRetract);
             [[MLNotificationQueue currentQueue] postNotificationName:kMonalDeletedMessageNotice object:account userInfo:@{
-                @"message": [[[DataLayer sharedInstance] messagesForHistoryIDs:@[historyIdToRetract]] firstObject],
+                @"message": [[[MLDataLayer sharedInstance] messagesForHistoryIDs:@[historyIdToRetract]] firstObject],
                 @"contact": possiblyUnknownContact,
             }];
             
@@ -504,7 +504,7 @@ static NSMutableDictionary* _typingNotifications;
         )
         {
             //first add an empty message into our history db...
-            NSNumber* historyIdToRetract = [[DataLayer sharedInstance]
+            NSNumber* historyIdToRetract = [[MLDataLayer sharedInstance]
                         addMessageToChatBuddy:buddyName
                                 withInboundDir:inbound
                                     forAccount:account.accountID
@@ -525,12 +525,12 @@ static NSMutableDictionary* _typingNotifications;
             ];
             
             //...then retract this message (e.g. mark as retracted)
-            [[DataLayer sharedInstance] retractMessageHistory:historyIdToRetract];
+            [[MLDataLayer sharedInstance] retractMessageHistory:historyIdToRetract];
             
             //update ui
             DDLogInfo(@"Sending out kMonalDeletedMessageNotice notification for historyId %@", historyIdToRetract);
             [[MLNotificationQueue currentQueue] postNotificationName:kMonalDeletedMessageNotice object:account userInfo:@{
-                @"message": [[[DataLayer sharedInstance] messagesForHistoryIDs:@[historyIdToRetract]] firstObject],
+                @"message": [[[MLDataLayer sharedInstance] messagesForHistoryIDs:@[historyIdToRetract]] firstObject],
                 @"historyId": historyIdToRetract,
                 @"contact": possiblyUnknownContact,
             }];
@@ -601,13 +601,13 @@ static NSMutableDictionary* _typingNotifications;
                 {
                     DDLogVerbose(@"Message id to LMC-replace: %@", messageIdToReplace);
                     //this checks if this message is from the same jid as the message it tries to do the LMC for (e.g. inbound can only correct inbound and outbound only outbound)
-                    historyId = [[DataLayer sharedInstance] getLMCHistoryIDForMessageId:messageIdToReplace from:messageNode.fromUser occupantId:occupantId participantJid:participantJid andAccount:account.accountID];
+                    historyId = [[MLDataLayer sharedInstance] getLMCHistoryIDForMessageId:messageIdToReplace from:messageNode.fromUser occupantId:occupantId participantJid:participantJid andAccount:account.accountID];
                     DDLogVerbose(@"History id to LMC-replace: %@", historyId);
                     //now check if the LMC is allowed (we use historyIdToUse for MLhistory mam queries to only check LMC for the 3 messages coming before this ID in this converastion)
                     //historyIdToUse will be nil, for messages going forward in time which means (check for the newest 3 messages in this conversation)
-                    if(historyId != nil && [[DataLayer sharedInstance] checkLMCEligible:historyId encrypted:encrypted historyBaseID:historyIdToUse])
+                    if(historyId != nil && [[MLDataLayer sharedInstance] checkLMCEligible:historyId encrypted:encrypted historyBaseID:historyIdToUse])
                     {
-                        [[DataLayer sharedInstance] updateMessageHistory:historyId withText:body];
+                        [[MLDataLayer sharedInstance] updateMessageHistory:historyId withText:body];
                         LMCReplaced = YES;
                     }
                     else
@@ -619,7 +619,7 @@ static NSMutableDictionary* _typingNotifications;
             //(this will update stanzaid in database, too, if deduplication detects a duplicate/reflection)
             if(historyId == nil)
             {
-                historyId = [[DataLayer sharedInstance]
+                historyId = [[MLDataLayer sharedInstance]
                              addMessageToChatBuddy:buddyName
                                     withInboundDir:inbound
                                         forAccount:account.accountID
@@ -640,7 +640,7 @@ static NSMutableDictionary* _typingNotifications;
                 ];
             }
             
-            message = [[DataLayer sharedInstance] messageForHistoryID:historyId];
+            message = [[MLDataLayer sharedInstance] messageForHistoryID:historyId];
             if(message != nil && historyId != nil)      //check historyId to make static analyzer happy
             {
                 //send receive markers if requested, but DON'T do so for MLhistory messages (and don't do so for channel type mucs)
@@ -678,7 +678,7 @@ static NSMutableDictionary* _typingNotifications;
                 if(body && stanzaid && !inbound && !isMLhistory)
                 {
                     DDLogInfo(@"Got outgoing message to contact '%@' sent by another client, removing all notifications for unread messages of this contact", buddyName);
-                    NSArray* unread = [[DataLayer sharedInstance] markMessagesAsReadForBuddy:buddyName andAccount:account.accountID tillStanzaId:stanzaid wasOutgoing:NO];
+                    NSArray* unread = [[MLDataLayer sharedInstance] markMessagesAsReadForBuddy:buddyName andAccount:account.accountID tillStanzaId:stanzaid wasOutgoing:NO];
                     DDLogDebug(@"Marked as read: %@", unread);
                     
                     //remove notifications of all remotely read messages (indicated by sending a response message)
@@ -694,7 +694,7 @@ static NSMutableDictionary* _typingNotifications;
                     }
                 }
                 
-                [[DataLayer sharedInstance] addActiveBuddies:buddyName forAccount:account.accountID];
+                [[MLDataLayer sharedInstance] addActiveBuddies:buddyName forAccount:account.accountID];
                 
                 DDLogInfo(@"Sending out kMonalNewMessageNotice notification for historyId %@", historyId);
                 [[MLNotificationQueue currentQueue] postNotificationName:kMonalNewMessageNotice object:account userInfo:@{
@@ -714,10 +714,10 @@ static NSMutableDictionary* _typingNotifications;
     {
         //just try to use the probably reflected message to update the stanzaid of our message in the db
         //messageId is always a proper origin-id in this case, because inbound == NO and Monal uses origin-ids
-        NSNumber* historyId = [[DataLayer sharedInstance] hasMessageForStanzaId:stanzaid orMessageID:messageId withInboundDir:inbound occupantId:occupantId andJid:buddyName onAccount:account.accountID];
+        NSNumber* historyId = [[MLDataLayer sharedInstance] hasMessageForStanzaId:stanzaid orMessageID:messageId withInboundDir:inbound occupantId:occupantId andJid:buddyName onAccount:account.accountID];
         if(historyId != nil)
         {
-            message = [[DataLayer sharedInstance] messageForHistoryID:historyId];
+            message = [[MLDataLayer sharedInstance] messageForHistoryID:historyId];
             DDLogDebug(@"Managed to update stanzaid of message (or stanzaid already known): %@", message);
             DDLogInfo(@"Sending out kMonalNewMessageNotice notification for historyId %@", historyId);
                 [[MLNotificationQueue currentQueue] postNotificationName:kMonalNewMessageNotice object:account userInfo:@{
@@ -737,7 +737,7 @@ static NSMutableDictionary* _typingNotifications;
         NSString* msgId = [messageNode findFirst:@"{urn:xmpp:receipts}received@id"];
         
         //save in DB
-        [[DataLayer sharedInstance] setMessageId:msgId andJid:messageNode.fromUser received:YES];
+        [[MLDataLayer sharedInstance] setMessageId:msgId andJid:messageNode.fromUser received:YES];
         
         //Post notice
         [[MLNotificationQueue currentQueue] postNotificationName:kMonalMessageReceivedNotice object:self userInfo:@{
@@ -758,7 +758,7 @@ static NSMutableDictionary* _typingNotifications;
             if(!inbound)
             {
                 DDLogInfo(@"Got OWN muc display marker in %@ for stanzaid: %@", buddyName, [messageNode findFirst:@"{urn:xmpp:chat-markers:0}displayed@id"]);
-                NSArray* unread = [[DataLayer sharedInstance] markMessagesAsReadForBuddy:buddyName andAccount:account.accountID tillStanzaId:[messageNode findFirst:@"{urn:xmpp:chat-markers:0}displayed@id"] wasOutgoing:NO];
+                NSArray* unread = [[MLDataLayer sharedInstance] markMessagesAsReadForBuddy:buddyName andAccount:account.accountID tillStanzaId:[messageNode findFirst:@"{urn:xmpp:chat-markers:0}displayed@id"] wasOutgoing:NO];
                 DDLogDebug(@"Marked as read: %@", unread);
                 
                 //remove notifications of all remotely read messages (indicated by sending a display marker)
@@ -780,7 +780,7 @@ static NSMutableDictionary* _typingNotifications;
             else
             {
                 DDLogInfo(@"Got remote muc display marker from %@ for stanzaid: %@", messageNode.from, [messageNode findFirst:@"{urn:xmpp:chat-markers:0}displayed@id"]);
-                NSArray* unread = [[DataLayer sharedInstance] markMessagesAsReadForBuddy:buddyName andAccount:account.accountID tillStanzaId:[messageNode findFirst:@"{urn:xmpp:chat-markers:0}displayed@id"] wasOutgoing:YES];
+                NSArray* unread = [[MLDataLayer sharedInstance] markMessagesAsReadForBuddy:buddyName andAccount:account.accountID tillStanzaId:[messageNode findFirst:@"{urn:xmpp:chat-markers:0}displayed@id"] wasOutgoing:YES];
                 DDLogDebug(@"Marked as displayed: %@", unread);
                 for(MLMessage* msg in unread)
                     [[MLNotificationQueue currentQueue] postNotificationName:kMonalMessageDisplayedNotice object:account userInfo:@{@"message":msg, kMessageId:msg.messageId}];
@@ -795,7 +795,7 @@ static NSMutableDictionary* _typingNotifications;
         if(inbound)
         {
             DDLogInfo(@"Got remote display marker from %@ for message id: %@", messageNode.fromUser, [messageNode findFirst:@"{urn:xmpp:chat-markers:0}displayed@id"]);
-            NSArray* unread = [[DataLayer sharedInstance] markMessagesAsReadForBuddy:messageNode.fromUser andAccount:account.accountID tillStanzaId:[messageNode findFirst:@"{urn:xmpp:chat-markers:0}displayed@id"] wasOutgoing:YES];
+            NSArray* unread = [[MLDataLayer sharedInstance] markMessagesAsReadForBuddy:messageNode.fromUser andAccount:account.accountID tillStanzaId:[messageNode findFirst:@"{urn:xmpp:chat-markers:0}displayed@id"] wasOutgoing:YES];
             DDLogDebug(@"Marked as displayed: %@", unread);
             for(MLMessage* msg in unread)
                 [[MLNotificationQueue currentQueue] postNotificationName:kMonalMessageDisplayedNotice object:account userInfo:@{@"message":msg, kMessageId:msg.messageId}];
@@ -806,7 +806,7 @@ static NSMutableDictionary* _typingNotifications;
         else
         {
             DDLogInfo(@"Got OWN display marker to %@ for message id: %@", messageNode.toUser, [messageNode findFirst:@"{urn:xmpp:chat-markers:0}displayed@id"]);
-            NSArray* unread = [[DataLayer sharedInstance] markMessagesAsReadForBuddy:messageNode.toUser andAccount:account.accountID tillStanzaId:[messageNode findFirst:@"{urn:xmpp:chat-markers:0}displayed@id"] wasOutgoing:NO];
+            NSArray* unread = [[MLDataLayer sharedInstance] markMessagesAsReadForBuddy:messageNode.toUser andAccount:account.accountID tillStanzaId:[messageNode findFirst:@"{urn:xmpp:chat-markers:0}displayed@id"] wasOutgoing:NO];
             DDLogDebug(@"Marked as read: %@", unread);
             
             //remove notifications of all remotely read messages (indicated by sending a display marker)
@@ -829,7 +829,7 @@ static NSMutableDictionary* _typingNotifications;
         //only use "is typing" messages when not older than 2 minutes (always allow "not typing" messages)
         if(
             [messageNode check:@"{http://jabber.org/protocol/chatstates}*"] &&
-            [[DataLayer sharedInstance] checkCap:@"http://jabber.org/protocol/chatstates" forUser:messageNode.fromUser onAccountID:account.accountID]
+            [[MLDataLayer sharedInstance] checkCap:@"http://jabber.org/protocol/chatstates" forUser:messageNode.fromUser onAccountID:account.accountID]
         )
         {
             //deduce state

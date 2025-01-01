@@ -60,7 +60,7 @@ struct ContactRequestsMenu: View {
     @State var enabledAccounts: [Int:xmpp] = [:]
     
     func updateRequests() {
-        let requests = DataLayer.sharedInstance().allContactRequests() as! [MLContact]
+        let requests = MLDataLayer.sharedInstance().allContactRequests() as! [MLContact]
         enabledAccounts.removeAll()
         for account in MLXMPPManager.sharedInstance().connectedXMPP as! [xmpp] {
             enabledAccounts[account.accountID.intValue] = account

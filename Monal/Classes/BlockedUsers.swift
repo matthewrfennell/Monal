@@ -22,7 +22,7 @@ struct BlockedUsers: View {
     }
 
     private func reloadBlocksFromDB() {
-        self.blockedJids = DataLayer.sharedInstance().blockedJids(forAccount: xmppAccount.accountID)
+        self.blockedJids = MLDataLayer.sharedInstance().blockedJids(forAccount: xmppAccount.accountID)
     }
 
     var body: some View {

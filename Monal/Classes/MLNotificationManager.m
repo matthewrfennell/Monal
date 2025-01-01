@@ -257,13 +257,13 @@ typedef NS_ENUM(NSUInteger, MLNotificationState) {
         return;
     }
     
-    BOOL muted = [[DataLayer sharedInstance] isMutedJid:message.buddyName onAccount:message.accountID];
-    if(!muted && message.isMuc == YES && [[DataLayer sharedInstance] isMucAlertOnMentionOnly:message.buddyName onAccount:message.accountID])
+    BOOL muted = [[MLDataLayer sharedInstance] isMutedJid:message.buddyName onAccount:message.accountID];
+    if(!muted && message.isMuc == YES && [[MLDataLayer sharedInstance] isMucAlertOnMentionOnly:message.buddyName onAccount:message.accountID])
     {
         NSString* displayName = [MLContact ownDisplayNameForAccount:xmppAccount];
         NSString* ownJid = xmppAccount.connectionProperties.identity.jid;
         NSString* userPart = [HelperTools splitJid:ownJid][@"user"];
-        NSString* nick = [[DataLayer sharedInstance] ownNickNameforMuc:message.buddyName forAccount:message.accountID];
+        NSString* nick = [[MLDataLayer sharedInstance] ownNickNameforMuc:message.buddyName forAccount:message.accountID];
         if(!(
             [message.messageText localizedCaseInsensitiveContainsString:nick] ||
             [message.messageText localizedCaseInsensitiveContainsString:displayName] ||
@@ -380,7 +380,7 @@ typedef NS_ENUM(NSUInteger, MLNotificationState) {
 
 -(UNMutableNotificationContent*) updateBadgeForContent:(UNMutableNotificationContent*) content
 {
-    NSNumber* unreadMsgCnt = [[DataLayer sharedInstance] countUnreadMessages];
+    NSNumber* unreadMsgCnt = [[MLDataLayer sharedInstance] countUnreadMessages];
     DDLogVerbose(@"Raw badge value: %@", unreadMsgCnt);
     content.badge = unreadMsgCnt;
     return content;
@@ -573,7 +573,7 @@ typedef NS_ENUM(NSUInteger, MLNotificationState) {
 
 -(void) donateInteractionForOutgoingDBId:(NSNumber*) messageDBId
 {
-    MLMessage* message = [[DataLayer sharedInstance] messageForHistoryID:messageDBId];
+    MLMessage* message = [[MLDataLayer sharedInstance] messageForHistoryID:messageDBId];
     INSendMessageIntent* intent = [self makeIntentForMessage:message usingText:@"dummyText" andAudioAttachment:nil direction:INInteractionDirectionOutgoing];
     INInteraction* interaction = [[INInteraction alloc] initWithIntent:intent response:nil];
     interaction.direction = INInteractionDirectionOutgoing;
@@ -606,7 +606,7 @@ typedef NS_ENUM(NSUInteger, MLNotificationState) {
             sender = [self makeINPersonWithContact:contactInGroup andDisplayName:message.contactDisplayName andAccount:account];
             
             //add other group members
-            for(NSDictionary* member in [[DataLayer sharedInstance] getMembersAndParticipantsOfMuc:message.buddyName forAccountID:message.accountID])
+            for(NSDictionary* member in [[MLDataLayer sharedInstance] getMembersAndParticipantsOfMuc:message.buddyName forAccountID:message.accountID])
             {
                 MLContact* contactInGroup = [MLContact createContactFromJid:emptyDefault(member[@"participant_jid"], @"", member[@"member_jid"]) andAccountID:message.accountID];
                 [recipients addObject:[self makeINPersonWithContact:contactInGroup andDisplayName:member[@"room_nick"] andAccount:account]];

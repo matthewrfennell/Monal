@@ -10,7 +10,7 @@
 
 #import "MLConstants.h"
 #import "MLXMPPManager.h"
-#import "DataLayer.h"
+#import "MLDataLayer.h"
 #import "HelperTools.h"
 #import "xmpp.h"
 #import "XMPPMessage.h"
@@ -361,7 +361,7 @@ static const int pingFreqencyMinutes = 5;       //about the same Conversations u
                 NSInteger autodeleteInterval = [[HelperTools defaultsDB] integerForKey:@"AutodeleteInterval"];
                 if(autodeleteInterval > 0)
                 {
-                    NSNumber* deletionCount = [[DataLayer sharedInstance] autoDeleteMessagesAfterInterval:(NSTimeInterval)autodeleteInterval];
+                    NSNumber* deletionCount = [[MLDataLayer sharedInstance] autoDeleteMessagesAfterInterval:(NSTimeInterval)autodeleteInterval];
                     //make sure our ui updates after a deletion
                     if(deletionCount.integerValue > 0)
                         [[MLNotificationQueue currentQueue] postNotificationName:kMonalRefresh object:nil userInfo:nil];
@@ -475,7 +475,7 @@ static const int pingFreqencyMinutes = 5;       //about the same Conversations u
 
 -(void) connectAccount:(NSNumber*) accountID
 {
-    NSDictionary* account = [[DataLayer sharedInstance] detailsForAccount:accountID];
+    NSDictionary* account = [[MLDataLayer sharedInstance] detailsForAccount:accountID];
     if(!account)
         DDLogError(@"Expected account settings in db for accountID: %@", accountID);
     else
@@ -513,7 +513,7 @@ static const int pingFreqencyMinutes = 5;       //about the same Conversations u
         DDLogError(@"Keychain error: %@", error);
         
         // Disable account because login will not be possible
-        [[DataLayer sharedInstance] disableAccountForPasswordMigration:account[kAccountID]];
+        [[MLDataLayer sharedInstance] disableAccountForPasswordMigration:account[kAccountID]];
         [self disconnectAccount:account[kAccountID] withExplicitLogout:YES];
         
         //show notifications for disabled accounts to warn user if in appex
@@ -591,7 +591,7 @@ static const int pingFreqencyMinutes = 5;       //about the same Conversations u
 
 -(void) reconnectAll
 {
-    NSArray* allAccounts = [[DataLayer sharedInstance] accountList];        //this will also "disconnect" disabled account, just to make sure
+    NSArray* allAccounts = [[MLDataLayer sharedInstance] accountList];        //this will also "disconnect" disabled account, just to make sure
     for(NSDictionary* account in allAccounts)
     {
         DDLogVerbose(@"Forcefully disconnecting account %@ (%@@%@)", [account objectForKey:kAccountID], [account objectForKey:@"username"], [account objectForKey:@"domain"]);
@@ -626,7 +626,7 @@ static const int pingFreqencyMinutes = 5;       //about the same Conversations u
 -(void) connectIfNecessary
 {
     DDLogVerbose(@"manager connectIfNecessary");
-    NSArray* enabledAccountList = [[DataLayer sharedInstance] enabledAccountList];
+    NSArray* enabledAccountList = [[MLDataLayer sharedInstance] enabledAccountList];
     for(NSDictionary* account in enabledAccountList)
         [self connectAccountWithDictionary:account];
     DDLogVerbose(@"manager connectIfNecessary done");
@@ -663,7 +663,7 @@ static const int pingFreqencyMinutes = 5;       //about the same Conversations u
     MLAssert(uploadInfo == nil || messageType == kMessageTypeFiletransfer, @"You must use message type = filetransfer if you supply an uploadInfo!");
     
     // Save message to history
-    NSNumber* messageDBId = [[DataLayer sharedInstance]
+    NSNumber* messageDBId = [[MLDataLayer sharedInstance]
         addMessageHistoryTo:contact.contactJid
                    forAccount:contact.accountID
                   withMessage:message
@@ -747,7 +747,7 @@ static const int pingFreqencyMinutes = 5;       //about the same Conversations u
     user = ((NSString*)[elements objectAtIndex:0]).lowercaseString;
     domain = ((NSString*)[elements objectAtIndex:1]).lowercaseString;
 
-    if([[DataLayer sharedInstance] doesAccountExistUser:user andDomain:domain])
+    if([[MLDataLayer sharedInstance] doesAccountExistUser:user andDomain:domain])
     {
         [[MLNotificationQueue currentQueue] postNotificationName:kXMPPError object:nil userInfo:@{
             @"title": NSLocalizedString(@"Duplicate Account", @""),
@@ -768,7 +768,7 @@ static const int pingFreqencyMinutes = 5;       //about the same Conversations u
     [dic setObject:@(directTLS) forKey:kDirectTLS];
     [dic setObject:@(plainActivated) forKey:kPlainActivated];
 
-    NSNumber* accountID = [[DataLayer sharedInstance] addAccountWithDictionary:dic];
+    NSNumber* accountID = [[MLDataLayer sharedInstance] addAccountWithDictionary:dic];
     if(accountID == nil)
         return nil;
     [self addNewAccountToKeychainAndConnectWithPassword:password andAccountID:accountID];
@@ -788,7 +788,7 @@ static const int pingFreqencyMinutes = 5;       //about the same Conversations u
 -(void) removeAccountForAccountID:(NSNumber*) accountID
 {
     [self disconnectAccount:accountID withExplicitLogout:YES];
-    [[DataLayer sharedInstance] removeAccount:accountID];
+    [[MLDataLayer sharedInstance] removeAccount:accountID];
     [SAMKeychain deletePasswordForService:kMonalKeychainName account:accountID.stringValue];
     [HelperTools removeAllShareInteractionsForAccountID:accountID];
     // trigger UI removal
@@ -833,7 +833,7 @@ $$
             [account removeFromRoster:contact];
         
         //remove from DB
-        [[DataLayer sharedInstance] removeBuddy:contact.contactJid forAccount:contact.accountID];
+        [[MLDataLayer sharedInstance] removeBuddy:contact.contactJid forAccount:contact.accountID];
         [contact removeShareInteractions];
         
         //notify the UI
@@ -917,7 +917,7 @@ $$
 {
     XMPPMessage* msg = notification.userInfo[@"message"];
     DDLogInfo(@"message %@, %@ sent, setting status accordingly", msg.id, msg.toUser);
-    [[DataLayer sharedInstance] setMessageId:msg.id andJid:msg.toUser sent:YES];
+    [[MLDataLayer sharedInstance] setMessageId:msg.id andJid:msg.toUser sent:YES];
 }
 
 #pragma mark - APNS
