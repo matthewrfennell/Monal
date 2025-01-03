@@ -204,7 +204,7 @@ struct ImageViewerWrapper: View {
     
     var body: some View {
         Group {
-            if let _ = info["mimeType"] as? String {
+            if let _ = info["mimeType"] as? String, (info["needsDownloading"] as! NSNumber).boolValue != true {
                 try? ImageViewer(delegate: dismisser, info: info)
             } else {
                 Text("Invalid file data")

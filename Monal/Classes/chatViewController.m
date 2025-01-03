@@ -2378,7 +2378,10 @@ enum msgSentState {
             } else  {
                 dispatch_async(dispatch_get_main_queue(), ^{
                     NSDictionary* selectedItem = [MLFiletransfer getFileInfoForMessage:[self.messageList objectAtIndex:indexPath.row]];
-                    NSMutableArray* allItems = [[DataLayer sharedInstance] allAttachmentsFromContact:self.contact.contactJid forAccount:self.contact.accountID];
+                    NSMutableArray* allItems = [NSMutableArray new];
+                    for(NSDictionary* info in [[DataLayer sharedInstance] allAttachmentsFromContact:self.contact.contactJid forAccount:self.contact.accountID])
+                        if(!(((NSNumber*)nilDefault(info[@"needsDownloading"], @YES)).boolValue) && ([info[@"mimeType"] hasPrefix:@"image/"] || [info[@"mimeType"] hasPrefix:@"video/"]))
+                            [allItems addObject:entry];
                     UIViewController* imageViewer = [[SwiftuiInterface new] makeImageViewerForCurrentItem:selectedItem allItems:allItems];
                     imageViewer.modalPresentationStyle = UIModalPresentationOverFullScreen;
                     [self presentViewController:imageViewer animated:YES completion:^{}];
@@ -2388,7 +2391,8 @@ enum msgSentState {
     }
 }
 
--(void) closePhotos {
+-(void) closePhotos
+{
     [self.navigationController dismissViewControllerAnimated:YES completion:nil];
 }
 
