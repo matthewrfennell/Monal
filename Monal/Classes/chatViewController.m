@@ -2381,7 +2381,7 @@ enum msgSentState {
                     NSMutableArray* allItems = [NSMutableArray new];
                     for(NSDictionary* info in [[DataLayer sharedInstance] allAttachmentsFromContact:self.contact.contactJid forAccount:self.contact.accountID])
                         if(!(((NSNumber*)nilDefault(info[@"needsDownloading"], @YES)).boolValue) && ([info[@"mimeType"] hasPrefix:@"image/"] || [info[@"mimeType"] hasPrefix:@"video/"]))
-                            [allItems addObject:entry];
+                            [allItems addObject:info];
                     UIViewController* imageViewer = [[SwiftuiInterface new] makeImageViewerForCurrentItem:selectedItem allItems:allItems];
                     imageViewer.modalPresentationStyle = UIModalPresentationOverFullScreen;
                     [self presentViewController:imageViewer animated:YES completion:^{}];
