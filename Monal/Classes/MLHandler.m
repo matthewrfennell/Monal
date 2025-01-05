@@ -7,9 +7,9 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "MLConstants.h"
-#import "MLHandler.h"
-#import "HelperTools.h"
+#import <monalxmpp/MLConstants.h>
+#import <monalxmpp/MLHandler.h>
+#import <monalxmpp/HelperTools.h>
 
 #define HANDLER_VERSION 1
 

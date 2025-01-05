@@ -8,13 +8,13 @@
 
 #include <stdarg.h>
 
-#import "MLXMLNode.h"
+#import <monalxmpp/MLXMLNode.h>
 
-#import "HelperTools.h"
+#import <monalxmpp/HelperTools.h>
 #import "XMPPIQ.h"
 #import "XMPPMessage.h"
-#import "XMPPPresence.h"
-#import "XMPPDataForm.h"
+#import <monalxmpp/XMPPPresence.h>
+#import <monalxmpp/XMPPDataForm.h>
 
 @import UIKit.UIApplication;
 

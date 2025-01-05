@@ -7,8 +7,8 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "HelperTools.h"
-#import "MLLogFileManager.h"
+#import <monalxmpp/HelperTools.h>
+#import <monalxmpp/MLLogFileManager.h>
 
 @interface DDFileLogRawlogMessageSerializer : NSObject <DDFileLogMessageSerializer>
 @end

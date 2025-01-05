@@ -7,12 +7,12 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "MLConstants.h"
-#import "XMPPPresence.h"
-#import "MLMessage.h"
-#import "MLContact.h"
-#import "MLPromise.h"
-#import "MLContactSoftwareVersionInfo.h"
+#import <monalxmpp/MLConstants.h>
+#import <monalxmpp/XMPPPresence.h>
+#import <monalxmpp/MLMessage.h>
+#import <monalxmpp/MLContact.h>
+#import <monalxmpp/MLPromise.h>
+#import <monalxmpp/MLContactSoftwareVersionInfo.h>
 
 NS_ASSUME_NONNULL_BEGIN
 

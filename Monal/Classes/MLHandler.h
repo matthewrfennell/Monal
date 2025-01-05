@@ -92,7 +92,7 @@ $invalidate(h, $BOOL(done, YES))
 
 **************************** </USAGE> ****************************/
 
-#include "metamacros.h"
+#include <monalxmpp/metamacros.h>
 
 //we need this in here, even if MLConstants.h was not included
 #ifndef STRIP_PARENTHESES

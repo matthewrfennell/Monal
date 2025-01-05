@@ -7,7 +7,7 @@
 //
 
 #import "MLSelectionController.h"
-#import "MLContact.h"
+#import <monalxmpp/MLContact.h>
 
 @interface MLSelectionController ()
 

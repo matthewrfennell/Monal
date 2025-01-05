@@ -7,13 +7,13 @@
 //
 
 #import "XMPPEdit.h"
-#import "xmpp.h"
+#import <monalxmpp/xmpp.h>
 #import "MBProgressHUD.h"
 #import "MLButtonCell.h"
-#import "MLImageManager.h"
+#import <monalxmpp/MLImageManager.h>
 #import "MLSwitchCell.h"
-#import "MLOMEMO.h"
-#import "MLNotificationQueue.h"
+#import <monalxmpp/MLOMEMO.h>
+#import <monalxmpp/MLNotificationQueue.h>
 #import "MonalAppDelegate.h"
 #import "ActiveChatsViewController.h"
 #import "Monal-Swift.h"

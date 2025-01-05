@@ -7,7 +7,7 @@
 //
 
 #import "MLFileTransferVideoCell.h"
-#import "HelperTools.h"
+#import <monalxmpp/HelperTools.h>
 
 @implementation MLFileTransferVideoCell
 

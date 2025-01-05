@@ -2,8 +2,8 @@
 // Please run this python script again to update this file
 // Example ../scripts/itu_pdf_to_objc.py >Classes/HelperTools+Quicksy_CountryCodes.m
 
-#import "Quicksy_Country.h"
-#import "HelperTools.h"
+#import <monalxmpp/Quicksy_Country.h>
+#import <monalxmpp/HelperTools.h>
 
 NSArray* _Nonnull COUNTRY_CODES = @[];      //will be replaced by actual values in +load below
 

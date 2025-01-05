@@ -7,7 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "HelperTools.h"
+#import <monalxmpp/HelperTools.h>
 
 FOUNDATION_EXPORT NSArray* _Nonnull COUNTRY_CODES;
 

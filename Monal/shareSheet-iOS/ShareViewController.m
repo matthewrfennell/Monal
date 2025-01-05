@@ -9,12 +9,12 @@
 #import "ShareViewController.h"
 #import "MLSelectionController.h"
 
-#import "MLContact.h"
-#import "MLConstants.h"
-#import "HelperTools.h"
-#import "DataLayer.h"
-#import "MLFiletransfer.h"
-#import "IPC.h"
+#import <monalxmpp/MLContact.h>
+#import <monalxmpp/MLConstants.h>
+#import <monalxmpp/HelperTools.h>
+#import <monalxmpp/DataLayer.h>
+#import <monalxmpp/MLFileTransfer.h>
+#import <monalxmpp/IPC.h>
 
 #import <MapKit/MapKit.h>
 #import <MobileCoreServices/MobileCoreServices.h>

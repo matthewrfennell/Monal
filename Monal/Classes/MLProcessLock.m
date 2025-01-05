@@ -12,9 +12,9 @@
 #include <sys/file.h>
 #include <errno.h>
 
-#import "MLProcessLock.h"
-#import "MLConstants.h"
-#import "HelperTools.h"
+#import <monalxmpp/MLProcessLock.h>
+#import <monalxmpp/MLConstants.h>
+#import <monalxmpp/HelperTools.h>
 
 
 @interface MLProcessLock()

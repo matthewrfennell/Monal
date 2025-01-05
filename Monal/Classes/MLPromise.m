@@ -7,10 +7,10 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "MLConstants.h"
-#import "DataLayer.h"
-#import "HelperTools.h"
-#import "MLPromise.h"
+#import <monalxmpp/MLConstants.h>
+#import <monalxmpp/DataLayer.h>
+#import <monalxmpp/HelperTools.h>
+#import <monalxmpp/MLPromise.h>
 
 NS_ASSUME_NONNULL_BEGIN
 

@@ -6,9 +6,9 @@
 //  Copyright © 2019 Monal.im. All rights reserved.
 //
 
-#import "MLMessage.h"
-#import "MLContact.h"
-#import "MLConstants.h"
+#import <monalxmpp/MLMessage.h>
+#import <monalxmpp/MLContact.h>
+#import <monalxmpp/MLConstants.h>
 
 @implementation MLMessage
 {

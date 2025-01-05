@@ -6,8 +6,8 @@
 //  Copyright © 2024 Monal.im. All rights reserved.
 //
 
-#import "Quicksy_Country.h"
-#import "MLConstants.h"
+#import <monalxmpp/Quicksy_Country.h>
+#import <monalxmpp/MLConstants.h>
 
 @interface Quicksy_Country()
     @property (nonatomic, strong) NSString* _Nullable name;      //has to be optional because we don't want to have NSLocalizedString() if we know the alpha-2 code
