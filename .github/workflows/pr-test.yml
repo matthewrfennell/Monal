@@ -1,0 +1,15 @@
+name: Run automated tests
+
+on:
+  pull_request:
+    branches:
+      - beta
+      - stable
+
+jobs:
+  run_tests:
+    runs-on: macos-latest
+    name: Run automated tests
+    steps:
+      - name: Run automated tests
+        run: Monal/scripts/test.sh
