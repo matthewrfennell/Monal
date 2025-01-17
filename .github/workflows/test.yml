@@ -1,0 +1,33 @@
+name: Run automated tests
+
+on:
+  pull_request:
+    branches:
+      - beta
+      - stable
+  push:
+    branches:
+      - develop
+
+jobs:
+  run_tests:
+    runs-on: macos-latest
+    name: Run automated tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Build rust
+        run: ./rust/build-rust.sh
+      - name: Install pods
+        working-directory: Monal
+        run: pod install --repo-update
+      - name: Run tests
+        working-directory: Monal
+        run: |
+          xcodebuild \
+            -workspace Monal.xcworkspace \
+            -scheme Monal \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            test
