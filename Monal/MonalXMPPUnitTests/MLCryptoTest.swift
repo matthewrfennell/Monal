@@ -30,7 +30,7 @@ class MLCryptoTests: XCTestCase {
         let decrypted = crypto.decryptGCM(key:key, encryptedContent:encrypted!.combined!)
         let result = String(data: decrypted!, encoding: .utf8)
         
-        XCTAssert(result == input);
+        XCTAssert(result == "fail here!");
     }
 
     func dataWithHexString(hex: String) -> Data {
