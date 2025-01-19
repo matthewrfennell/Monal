@@ -27,9 +27,10 @@ jobs:
         working-directory: Monal
         run: |
           set -o pipefail && \
-          xcodebuild \
+          NSUnbufferedIO=YES xcodebuild \
             -workspace Monal.xcworkspace \
             -scheme Monal \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
-            test | \
+            test \
+            2>&1 | \
           xcbeautify --renderer github-actions
