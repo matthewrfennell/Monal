@@ -10,6 +10,8 @@ on:
     branches:
       - develop
 
+permissions: {}
+
 jobs:
   run_tests:
     runs-on: macos-latest
