@@ -16,7 +16,7 @@ jobs:
   # This workflow contains a single job called "build"
   buildAndPublishBeta:
     name: "Build and Publish Beta Release"
-    runs-on: self-hosted
+    runs-on: macos-latest
     outputs:
       release-tag: ${{ steps.releasenotes.outputs.tag }}
       release-name: ${{ steps.releasenotes.outputs.name }}
@@ -249,7 +249,7 @@ jobs:
   
   updateTranslations:
     name: Update Translations using Beta-Branch
-    runs-on: self-hosted
+    runs-on: macos-latest
     needs: [buildAndPublishBeta]
     env:
       APP_NAME: "Monal"
