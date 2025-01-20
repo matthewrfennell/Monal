@@ -8,7 +8,6 @@ jobs:
   promoteDraftRelease:
     name: Promote draft release to live release
     runs-on: ubuntu-latest
-    needs: [extractChangelog]
     permissions:
       contents: write
     steps:
