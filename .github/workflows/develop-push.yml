@@ -16,7 +16,7 @@ jobs:
   # This workflow contains a single job called "build"
   buildAndPublishAlpha:
     # The type of runner that the job will run on
-    runs-on: ['ARM64', 'macos-latest']
+    runs-on: 'macos-latest'
     outputs:
       id: ${{ steps.changelog.outputs.id }}
       timestamp: ${{ steps.changelog.outputs.timestamp }}
