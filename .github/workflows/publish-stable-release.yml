@@ -2,6 +2,7 @@ name: Publish release
 on:
   repository_dispatch:
     types: [monal_release]
+  workflow_dispatch:
 permissions: {}
 jobs:
   extractChangelog:
