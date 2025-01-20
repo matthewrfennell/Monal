@@ -5,7 +5,7 @@ on:
 permissions: {}
 jobs:
   extractChangelog:
-    runs-on: self-hosted
+    runs-on: macos-latest
     outputs:
       release-buildNumber: ${{ steps.releasenotes.outputs.buildNumber }}
       release-tag: ${{ steps.releasenotes.outputs.tag }}
