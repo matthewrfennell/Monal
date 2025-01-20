@@ -54,8 +54,6 @@ jobs:
           echo "#define ALPHA_COMMIT_HASH \"$(git show-ref --hash --abbrev refs/heads/develop)\"" > Monal/Classes/commitHash.h
       - name: Make our build scripts executable
         run: chmod +x ./scripts/build.sh
-      - name: Run build
-        run: ./scripts/build.sh
       - run: |
           cd Monal/build/app/tar_release
           tar -cf "../$APP_NAME.tar" "$APP_DIR"
@@ -76,10 +74,6 @@ jobs:
           echo "message<<__EOF__" >> "$GITHUB_OUTPUT"
           echo "$MESSAGE" >> "$GITHUB_OUTPUT"
           echo "__EOF__" >> "$GITHUB_OUTPUT"
-      - name: Uploading to alpha site
-        run: ./scripts/uploadAlpha.sh
-      - name: Notarize catalyst
-        run: xcrun notarytool submit ./Monal/build/app/Monal.alpha.zip --wait --team-id S8D843U34Y --key "/Users/ci/appstoreconnect/apiKey.p8" --key-id "$(cat /Users/ci/appstoreconnect/apiKeyId.txt)" --issuer "$(cat /Users/ci/appstoreconnect/apiIssuerId.txt)"
       - name: Update monal homebrew alpha repo
         run: scripts/updateAlphaHomebrew.sh
       - uses: actions/upload-artifact@v4
@@ -92,39 +86,3 @@ jobs:
          name: monal-ios
          path: "Monal/build/ipa/Monal.alpha.ipa"
          if-no-files-found: error
-      # - uses: actions/upload-artifact@v4
-      #   with:
-      #    name: monal-catalyst-dsym
-      #    path: Monal/build/macos_Monal.xcarchive/dSYMs
-      #    if-no-files-found: error
-      # - uses: actions/upload-artifact@v4
-      #   with:
-      #    name: monal-ios-dsym
-      #    path: Monal/build/ios_Monal.xcarchive/dSYMs
-      #    if-no-files-found: error
-      # - name: Update translations
-      #   run: |
-      #     chmod +x ./scripts/updateLocalization.sh
-      #     chmod +x ./scripts/xliff_extractor.py
-      #     ./scripts/updateLocalization.sh NOCOMMIT
-  notifyMuc:
-    name: Notify support MUC about new Alpharelease
-    runs-on: ubuntu-latest
-    needs: [buildAndPublishAlpha]
-    steps:
-      - name: Notify
-        uses: monal-im/xmpp-notifier@master
-        with: # Set the secrets as inputs
-          jid: ${{ secrets.BOT_JID }}
-          password: ${{ secrets.BOT_PASSWORD }}
-          server_host: ${{ secrets.BOT_SERVER }}
-          recipient: monal-alpha@chat.yax.im
-          recipient_is_room: true
-          bot_alias: "Monal Release Bot"
-          message: |
-            New alpha build based on the following commit:
-            ${{ needs.buildAndPublishAlpha.outputs.id }}
-            ${{ needs.buildAndPublishAlpha.outputs.timestamp }}
-            ${{ needs.buildAndPublishAlpha.outputs.message }}
-            
-            Download page: https://downloads.monal-im.org/monal-im/alpha/
