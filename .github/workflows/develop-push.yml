@@ -70,8 +70,10 @@ jobs:
           echo "message<<__EOF__" >> "$GITHUB_OUTPUT"
           echo "$MESSAGE" >> "$GITHUB_OUTPUT"
           echo "__EOF__" >> "$GITHUB_OUTPUT"
-      - name: Update monal homebrew alpha repo
-        run: scripts/updateAlphaHomebrew.sh
+      - run: |
+          mkdir -p Monal/build/app Monal/build/ipa
+          touch Monal/build/app/Monal.alpha.tar
+          touch Monal/build/ipa/Monal.alpha.ipa
       - uses: actions/upload-artifact@v4
         with:
          name: monal-catalyst
