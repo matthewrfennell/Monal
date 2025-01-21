@@ -53,7 +53,7 @@ jobs:
       - name: push tag to stable repo
         run: |
           git checkout -b stable
-          git push -f
+          git push -f --set-upstream origin stable
       - uses: actions/upload-artifact@v4
         with:
           name: monal-catalyst-zip
