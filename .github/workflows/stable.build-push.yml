@@ -52,7 +52,7 @@ jobs:
           if-no-files-found: error
       - name: push tag to stable repo
         run: |
-          git push origin Build_iOS_test1
+          git push -u origin Build_iOS_test1
       - uses: actions/upload-artifact@v4
         with:
           name: monal-catalyst-zip
