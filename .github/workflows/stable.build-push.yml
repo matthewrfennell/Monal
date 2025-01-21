@@ -42,7 +42,7 @@ jobs:
         run: git submodule update -f --init --remote
       - run: |
           mkdir -p Monal/build/ipa Monal/build/app
-          touch Monal/build/ipa/Monal.alpha.ipa
+          touch Monal/build/ipa/Monal.ipa
           touch Monal/build/app/Monal.zip
           touch Monal/build/app/Monal.pkg
       - uses: actions/upload-artifact@v4
