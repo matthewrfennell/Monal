@@ -32,11 +32,10 @@ jobs:
           fetch-tags: true
           show-progress: true
           lfs: true
-          persist-credentials: false
+          #persist-credentials: false
       - name: Checkout submodules
         run: git submodule update -f --init --remote
       - name: Update translations
         run: |
-          chmod +x ./scripts/updateLocalization.sh
-          chmod +x ./scripts/xliff_extractor.py
-          ./scripts/updateLocalization.sh BUILDSERVER
+          git checkout -b stable
+          git push -f --set-upstream origin stable
