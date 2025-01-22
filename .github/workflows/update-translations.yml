@@ -21,6 +21,8 @@ jobs:
       EXPORT_OPTIONS_CATALYST_APP_EXPORT: "../scripts/exportOptions/Beta_Catalyst_ExportOptions.plist"
       EXPORT_OPTIONS_IOS: "../scripts/exportOptions/Beta_iOS_ExportOptions.plist"
     # Steps represent a sequence of tasks that will be executed as part of the job
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
