@@ -2,6 +2,7 @@ name: Publish Quicksy release
 on:
   repository_dispatch:
     types: [quicksy_release]
+  workflow_dispatch:
 permissions: {}
 jobs:
   extractChangelog:
@@ -13,8 +14,8 @@ jobs:
       release-name: ${{ steps.releasenotes.outputs.name }}
       release-notes: ${{ steps.releasenotes.outputs.notes }}
       release-notes_ios: ${{ steps.releasenotes.outputs.notes_ios }}
+    runs-on: macos-latest
     # create release only if the ios app made it to the appstore and ignore the macos appstore state
-    if: github.event.client_payload.platform == 'iOS'
     steps:
       # - run: |
       #     echo ${{ github.event.client_payload.appName }}
@@ -25,9 +26,4 @@ jobs:
         env:
           APP_VERSION_NUMBER: ${{ github.event.client_payload.appVersionNumber }}
         run: |
-          buildNumber="$(fastlane run app_store_build_number api_key_path:"/Users/ci/appstoreconnect/key.json" team_id:"S8D843U34Y" app_identifier:"G7YU7X7KRJ.SworIM" live:false version:"${APP_VERSION_NUMBER}" 2>&1 | tee /dev/stderr | grep Result | sed -E 's/^.*Result: ([0-9]+).*$/\1/g')"
-          mkdir -p /Users/ci/releases
-          OUTPUT_FILE="/Users/ci/quicksy_releases/$buildNumber.output"
-          touch "$OUTPUT_FILE"
-          cat "$OUTPUT_FILE" | tee /dev/stderr >> "$GITHUB_OUTPUT"
-
+          echo "fastlane run app_store_build_number api_key_path:/Users/ci/appstoreconnect/key.json team_id:S8D843U34Y app_identifier:G7YU7X7KRJ.SworIM live:false version:${APP_VERSION_NUMBER} 2>&1 | tee /dev/stderr | grep Result | sed -E 's/^.*Result: ([0-9]+).*$/\1/g')"
