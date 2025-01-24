@@ -77,11 +77,15 @@ jobs:
       - name: Create or Update Pull Request
         id: create_or_update_pr
         uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ steps.find_pr.outputs.result }}
+          PR_TITLE: ${{ steps.get_commits.outputs.buildVersion }}
+          PR_BODY: ${{ steps.get_commits.outputs.description }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const [owner, repo] = process.env.GITHUB_REPOSITORY.split("/");
-            const prNumber = ${{ steps.find_pr.outputs.result }};
+            const prNumber = ${PR_NUMBER};
             let pullRequest;
             if(prNumber)
             {
@@ -90,8 +94,8 @@ jobs:
                 owner,
                 repo,
                 pull_number: prNumber,
-                title: `${{ steps.get_commits.outputs.buildVersion }}`,
-                body: `${{ steps.get_commits.outputs.description }}`,
+                title: `${PR_TITLE}`,
+                body: `${PR_BODY}`,
               });
               console.log(`Updated pull request #${prNumber}`);
             }
@@ -104,8 +108,8 @@ jobs:
                 head: 'beta',
                 base: 'stable',
                 draft: false,
-                title: `${{ steps.get_commits.outputs.buildVersion }}`,
-                body: `${{ steps.get_commits.outputs.description }}`,
+                title: `${PR_TITLE}`,
+                body: `${PR_BODY}`,
               });
               console.log(`Created pull request #${pullRequest.data.number}`);
               //update pr after creation to trigger our pr-semver-title workflow
@@ -113,19 +117,21 @@ jobs:
                 owner,
                 repo,
                 pull_number: pullRequest.data.number,
-                title: `${{ steps.get_commits.outputs.buildVersion }}`,
-                body: `${{ steps.get_commits.outputs.description }}`,
+                title: `${PR_TITLE}`,
+                body: `${PR_BODY}`,
               });
               console.log(`Updated pull request #${pullRequest.data.number}`);
             }
             return pullRequest.data.number;
       - name: Add Label to Pull Request
         uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ steps.create_or_update_pr.outputs.result }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const [owner, repo] = process.env.GITHUB_REPOSITORY.split("/");
-            const pullNumber = ${{ steps.create_or_update_pr.outputs.result }};
+            const pullNumber = ${PR_NUMBER};
             await github.rest.issues.addLabels({
               owner,
               repo,
