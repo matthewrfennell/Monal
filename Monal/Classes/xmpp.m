@@ -1405,7 +1405,7 @@ static NSRegularExpression* fastTokenRemovalRegex;
                 //use a much smaller limit while in appex because memory there is limited to ~32MiB
                 unsigned long operationCount = [self->_parseQueue operationCount];
                 double usedMemory = [HelperTools report_memory];
-                if(!(operationCount > 256 || (appex && usedMemory > (0.5*availableMemory) && operationCount > MAX(2, (0.75*availableMemory) - usedMemory))))
+                if(!(operationCount > 256 || (appex && usedMemory > (0.5*availableMemory) && (double) operationCount > MAX(2, (0.75*availableMemory) - usedMemory))))
                     break;
                 
                 double waittime = (double)[self->_parseQueue operationCount] / 256.0;
@@ -1590,7 +1590,7 @@ static NSRegularExpression* fastTokenRemovalRegex;
             {
                 NSUInteger delayBy = min((NSUInteger)timeout, [self->_parseQueue operationCount]);
                 DDLogWarn(@"parseQueue overflow, delaying ping by 4 seconds.");
-                self->_pingDelayTimer = createTimer(delayBy, (^{
+                self->_pingDelayTimer = createTimer((double) delayBy, (^{
                     [self removeTimerToCancelOnDisconnect:self->_pingDelayTimer];
                     self->_pingDelayTimer = nil;
                     DDLogDebug(@"ping delay expired, retrying ping.");

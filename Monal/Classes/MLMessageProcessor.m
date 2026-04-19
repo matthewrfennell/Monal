@@ -135,7 +135,7 @@ static NSMutableDictionary* _typingNotifications;
     NSInteger autodeleteInterval = [[HelperTools defaultsDB] integerForKey:@"AutodeleteInterval"];
     if(autodeleteInterval > 0)
     {
-        NSDate* pastDate = [NSDate dateWithTimeIntervalSinceNow:-autodeleteInterval];
+        NSDate* pastDate = [NSDate dateWithTimeIntervalSinceNow:(NSTimeInterval) -autodeleteInterval];
         NSDate* messageTimestamp = [messageNode findFirst:@"{urn:xmpp:delay}delay@stamp|datetime"];
         if(messageTimestamp != nil && [messageTimestamp compare:pastDate] == NSOrderedAscending)
         {
