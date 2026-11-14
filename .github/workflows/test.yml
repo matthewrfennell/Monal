@@ -48,6 +48,7 @@ jobs:
             -scheme Monal \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
             -resultBundlePath "$RUNNER_TEMP/test-artifacts/TestResults.xcresult" \
+            USE_REAL_SERVER=YES \
             test \
             2>&1 | \
           tee "$RUNNER_TEMP/test-artifacts/xcodebuild.log" | \
