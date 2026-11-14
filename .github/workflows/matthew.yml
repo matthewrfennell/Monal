@@ -1,0 +1,37 @@
+name: Matthew's test job
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - beta
+      - stable
+      - quicksy
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  run_tests:
+    runs-on: macos-15
+    name: Run automated tests
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          clean: true
+          submodules: true
+          fetch-depth: 1000
+          fetch-tags: true
+          show-progress: true
+          lfs: true
+      - name: Run tests
+        working-directory: Monal
+        env:
+          MATTHEW_ENV_VAR: YES
+        run: |
+          echo "${MATTHEW_ENV_VAR}"
+          echo "----"
+          echo "${CI}"
