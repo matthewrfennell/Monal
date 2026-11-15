@@ -26,3 +26,15 @@ jobs:
         run: nc -zv chat.ephemeral-xmpp-server.org 5222
       - name: Can connect to 5223?
         run: nc -zv chat.ephemeral-xmpp-server.org 5223
+      - name: Can connect to 5223?
+        run: nc -zv chat.ephemeral-xmpp-server.org 5223
+      - name: Can see A record?
+        run: dig A chat.ephemeral-xmpp-server.org
+      - name: Can see AAAA record?
+        run: dig AAAA chat.ephemeral-xmpp-server.org
+      - name: Can force IPv4?
+        run: sudo echo 94.237.53.128 >> /etc/hosts
+      - name: Can see A record?
+        run: dig A chat.ephemeral-xmpp-server.org
+      - name: Can see AAAA record?
+        run: dig AAAA chat.ephemeral-xmpp-server.org
