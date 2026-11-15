@@ -19,5 +19,9 @@ jobs:
     runs-on: macos-15
     name: Run automated tests
     steps:
-      - name: Checkout submodules
+      - name: Can resolve DNS?
         run: nslookup chat.ephemeral-xmpp-server.org
+      - name: Can connect to 5222?
+        run: timeout 30 nc -zv chat.ephemeral-xmpp-server.org 5222
+      - name: Can connect to 5223?
+        run: timeout 30 nc -zv chat.ephemeral-xmpp-server.org 5223
